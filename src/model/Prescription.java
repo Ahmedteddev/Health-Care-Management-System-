@@ -55,6 +55,20 @@ public class Prescription {
         this.collectionDate = collectionDate;
     }
 
+    // ============================================================
+    // REQUIRED FIELDS (as per specification)
+    // ============================================================
+    public String getPrescriptionId() {
+        return id;
+    }
+    
+    public void setPrescriptionId(String prescriptionId) {
+        this.id = prescriptionId;
+    }
+    
+    // ============================================================
+    // EXISTING GETTERS AND SETTERS
+    // ============================================================
     public String getId()               { return id; }
     public String getPatientId()        { return patientId; }
     public String getClinicianId()      { return clinicianId; }

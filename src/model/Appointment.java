@@ -47,6 +47,36 @@ public class Appointment {
         this.lastModified = lastModified;
     }
 
+    // ============================================================
+    // REQUIRED FIELDS (as per specification)
+    // ============================================================
+    public String getAppointmentId() {
+        return id;
+    }
+    
+    public void setAppointmentId(String appointmentId) {
+        this.id = appointmentId;
+    }
+    
+    public String getDate() {
+        return appointmentDate;
+    }
+    
+    public void setDate(String date) {
+        this.appointmentDate = date;
+    }
+    
+    public String getReason() {
+        return reasonForVisit;
+    }
+    
+    public void setReason(String reason) {
+        this.reasonForVisit = reason;
+    }
+    
+    // ============================================================
+    // EXISTING GETTERS AND SETTERS
+    // ============================================================
     public String getId()                { return id; }
     public String getPatientId()         { return patientId; }
     public String getClinicianId()       { return clinicianId; }

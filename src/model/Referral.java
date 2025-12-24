@@ -47,7 +47,44 @@ public class Referral {
         this.lastUpdated = lastUpdated;
     }
 
-    // Getters and Setters  
+    // ============================================================
+    // REQUIRED FIELDS (as per specification)
+    // ============================================================
+    public String getReferralId() {
+        return id;
+    }
+    
+    public void setReferralId(String referralId) {
+        this.id = referralId;
+    }
+    
+    public String getSourceDoctorId() {
+        return referringClinicianId;
+    }
+    
+    public void setSourceDoctorId(String sourceDoctorId) {
+        this.referringClinicianId = sourceDoctorId;
+    }
+    
+    public String getTargetSpecialistId() {
+        return referredToClinicianId;
+    }
+    
+    public void setTargetSpecialistId(String targetSpecialistId) {
+        this.referredToClinicianId = targetSpecialistId;
+    }
+    
+    public String getUrgency() {
+        return urgencyLevel;
+    }
+    
+    public void setUrgency(String urgency) {
+        this.urgencyLevel = urgency;
+    }
+    
+    // ============================================================
+    // EXISTING GETTERS AND SETTERS
+    // ============================================================
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

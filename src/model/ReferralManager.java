@@ -3,33 +3,50 @@ package model;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ReferralManager class implementing Singleton Pattern.
+ * Manages the list of Referral objects.
+ */
 public class ReferralManager {
 
     private static ReferralManager instance;
-
+    
+    private final List<Referral> referrals;
     private final ReferralRepository referralRepository;
     private final PatientRepository patientRepository;
     private final ClinicianRepository clinicianRepository;
     private final FacilityRepository facilityRepository;
     private final String referralTextPath;
 
+    /**
+     * Private constructor to enforce Singleton pattern.
+     */
     private ReferralManager(ReferralRepository rr,
                             PatientRepository pr,
                             ClinicianRepository cr,
                             FacilityRepository fr,
                             String referralTextPath) {
 
+        this.referrals = new ArrayList<>();
         this.referralRepository = rr;
         this.patientRepository = pr;
         this.clinicianRepository = cr;
         this.facilityRepository = fr;
         this.referralTextPath = referralTextPath;
+        
+        // Load existing referrals from repository
+        if (rr != null) {
+            this.referrals.addAll(rr.getAll());
+        }
     }
 
-
-    // Singleton access
+    /**
+     * Public static method to get the singleton instance.
+     * Implements lazy initialization.
+     */
     public static synchronized ReferralManager getInstance(
             ReferralRepository rr,
             PatientRepository pr,
@@ -42,15 +59,50 @@ public class ReferralManager {
         }
         return instance;
     }
+    
+    /**
+     * Gets the list of Referral objects managed by this singleton.
+     */
+    public List<Referral> getReferrals() {
+        return referrals;
+    }
+    
+    /**
+     * Adds a referral to the managed list.
+     */
+    public void addReferral(Referral referral) {
+        if (referral != null && !referrals.contains(referral)) {
+            referrals.add(referral);
+        }
+    }
+    
+    /**
+     * Removes a referral from the managed list.
+     */
+    public void removeReferral(Referral referral) {
+        referrals.remove(referral);
+    }
 
 
+    /**
+     * Creates a new referral and adds it to the managed list.
+     */
     public void createReferral(Referral r) {
-        referralRepository.addAndAppend(r);
+        addReferral(r);
+        if (referralRepository != null) {
+            referralRepository.addAndAppend(r);
+        }
         writeReferralText(r);
     }
 
+    /**
+     * Gets all referrals from the repository.
+     */
     public List<Referral> getAllReferrals() {
-        return referralRepository.getAll();
+        if (referralRepository != null) {
+            return referralRepository.getAll();
+        }
+        return referrals;
     }
 
 
