@@ -1,91 +1,85 @@
 package Main;
 
-import controller.*;
 import model.*;
-import view.*;
+import view.GPDashboard;
+import controller.GPController;
 import javax.swing.SwingUtilities;
 
+/**
+ * Main entry point for the Healthcare Management System.
+ * Launches the GP Dashboard for clinician access.
+ */
 public class Main {
 
     public static void main(String[] args) {
 
         SwingUtilities.invokeLater(() -> {
+            try {
+                // ================================
+                // REPOSITORIES
+                // ================================
+                PatientRepository pr =
+                        new PatientRepository("src/data/patients.csv");
 
-            // ================================
-            // REPOSITORIES
-            // ================================
-            PatientRepository pr =
-                    new PatientRepository("src/data/patients.csv");
+                ClinicianRepository cr =
+                        new ClinicianRepository("src/data/clinicians.csv");
 
-            ClinicianRepository cr =
-                    new ClinicianRepository("src/data/clinicians.csv");
+                AppointmentRepository ar =
+                        new AppointmentRepository("src/data/appointments.csv");
 
-            FacilityRepository fr =
-                    new FacilityRepository("src/data/facilities.csv");
+                // Note: FacilityRepository is available but not used in GP Dashboard
+                // Uncomment if needed:
+                // FacilityRepository fr =
+                //         new FacilityRepository("src/data/facilities.csv");
 
-            AppointmentRepository ar =
-                    new AppointmentRepository("src/data/appointments.csv");
+                // Note: PrescriptionRepository and ReferralManager are available
+                // but not used in the GP Dashboard. Uncomment if needed:
+                // PrescriptionRepository pResR =
+                //         new PrescriptionRepository("src/data/prescriptions.csv");
+                // ReferralManager rm = ReferralManager.getInstance(
+                //         "src/data/referrals.csv", pr, cr, fr,
+                //         "src/data/referrals_output.txt");
 
-            PrescriptionRepository pResR =
-                    new PrescriptionRepository("src/data/prescriptions.csv");
+                // ================================
+                // GP DASHBOARD SETUP
+                // ================================
+                // Fetch C001 (Dr. David Thompson) from ClinicianRepository
+                // You can change this to any clinician ID or implement login logic
+                Clinician clinician = cr.findById("C001");
+                
+                if (clinician == null) {
+                    System.err.println("Error: Clinician C001 not found in repository.");
+                    System.err.println("Available clinicians:");
+                    for (Clinician c : cr.getAll()) {
+                        System.err.println("  - " + c.getClinicianId() + ": " + c.getFullName());
+                    }
+                    return;
+                }
 
-            // ================================
-            // REFERRAL MANAGER (Singleton)
-            // ================================
-            ReferralManager rm = ReferralManager.getInstance(
-                    "src/data/referrals.csv",  // referralCsvPath
-                    pr,   // PatientRepository
-                    cr,   // ClinicianRepository
-                    fr,   // FacilityRepository
-                    "src/data/referrals_output.txt"  // referralTextPath
-            );
+                // Create GP Dashboard
+                GPDashboard dashboard = new GPDashboard(clinician);
 
-            // ================================
-            // VIEWS
-            // ================================
-            PatientView pv = new PatientView();
-            ClinicianView cv = new ClinicianView();
-            AppointmentView av = new AppointmentView();
-            PrescriptionView presV = new PrescriptionView();
-            ReferralView rv = new ReferralView();
+                // Create GP Controller to handle interactions
+                GPController gpController = new GPController(dashboard, ar, pr);
 
-            // ================================
-            // CONTROLLERS (MATCHING YOUR CONSTRUCTORS)
-            // ================================
-            PatientController pc = new PatientController(pr, pv);
+                // Load appointments for this clinician
+                gpController.loadAppointments();
 
-            ClinicianController cc = new ClinicianController(cr, cv);
+                // Show the dashboard
+                dashboard.setVisible(true);
 
-            AppointmentController ac = new AppointmentController(
-                    ar,   // AppointmentRepository
-                    pr,   // PatientRepository
-                    cr,   // ClinicianRepository
-                    fr,   // FacilityRepository
-                    av    // AppointmentView
-            );
+                System.out.println("Healthcare Management System started successfully.");
+                System.out.println("GP Dashboard launched for: " + clinician.getFullName());
+                System.out.println("Specialty: " + clinician.getSpeciality());
 
-            PrescriptionController prc = new PrescriptionController(
-                    pResR,
-                    pr,
-                    cr,
-                    ar,
-                    presV
-            );
-
-            ReferralController rc = new ReferralController(
-                    rm,   // ReferralManager
-                    pr,   // PatientRepository
-                    cr,   // ClinicianRepository
-                    fr,   // FacilityRepository
-                    ar,   // AppointmentRepository
-                    rv    // ReferralView
-            );
-
-            // ================================
-            // MAIN FRAME
-            // ================================
-            MainFrame frame = new MainFrame(pc, cc, ac, prc, rc);
-            frame.setVisible(true);
+            } catch (Exception ex) {
+                System.err.println("Error starting the application: " + ex.getMessage());
+                ex.printStackTrace();
+                javax.swing.JOptionPane.showMessageDialog(null,
+                    "Error starting the application:\n" + ex.getMessage(),
+                    "Startup Error",
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
+            }
         });
     }
 }
