@@ -29,15 +29,15 @@ public class Main {
             PrescriptionRepository pResR =
                     new PrescriptionRepository("src/data/prescriptions.csv");
 
-            ReferralRepository rR =
-                    new ReferralRepository("src/data/referrals.csv");
-
             // ================================
             // REFERRAL MANAGER (Singleton)
             // ================================
             ReferralManager rm = ReferralManager.getInstance(
-                    rR, pr, cr, fr,
-                    "src/data/referrals_output.txt"
+                    "src/data/referrals.csv",  // referralCsvPath
+                    pr,   // PatientRepository
+                    cr,   // ClinicianRepository
+                    fr,   // FacilityRepository
+                    "src/data/referrals_output.txt"  // referralTextPath
             );
 
             // ================================
