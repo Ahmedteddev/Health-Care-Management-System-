@@ -1,38 +1,41 @@
 package model;
 
+/**
+ * Appointment class representing patient appointments.
+ * Matches CSV structure: appointment_id, patient_id, clinician_id, facility_id,
+ * appointment_date, appointment_time, duration_minutes, appointment_type,
+ * status, reason_for_visit, notes, created_date, last_modified
+ */
 public class Appointment {
-
-    private String id;                  // appointment_id
-    private String patientId;           // patient_id
-    private String clinicianId;         // clinician_id
-    private String facilityId;          // facility_id
-    private String appointmentDate;     // appointment_date  (e.g. 20/09/2025)
-    private String appointmentTime;     // appointment_time  (e.g. 09:00)
-    private String durationMinutes;     // duration_minutes  (e.g. 15)
-    private String appointmentType;     // appointment_type  (e.g. Routine Consultation)
-    private String status;              // status            (Scheduled, Cancelled, etc.)
-    private String reasonForVisit;      // reason_for_visit
-    private String notes;               // notes
-    private String createdDate;         // created_date
-    private String lastModified;        // last_modified
-
-    public Appointment() { }
-
-    public Appointment(String id,
-                       String patientId,
-                       String clinicianId,
-                       String facilityId,
-                       String appointmentDate,
-                       String appointmentTime,
-                       String durationMinutes,
-                       String appointmentType,
-                       String status,
-                       String reasonForVisit,
-                       String notes,
-                       String createdDate,
-                       String lastModified) {
-
-        this.id = id;
+    
+    private String appointmentId;
+    private String patientId;
+    private String clinicianId;
+    private String facilityId;
+    private String appointmentDate;
+    private String appointmentTime;
+    private String durationMinutes;
+    private String appointmentType;
+    private String status;
+    private String reasonForVisit;
+    private String notes;
+    private String createdDate;
+    private String lastModified;
+    
+    public Appointment() {
+    }
+    
+    /**
+     * Full-parameter constructor for CSV loading (all 13 fields).
+     */
+    public Appointment(String appointmentId, String patientId, String clinicianId,
+                       String facilityId, String appointmentDate,
+                       String appointmentTime, String durationMinutes,
+                       String appointmentType, String status,
+                       String reasonForVisit, String notes,
+                       String createdDate, String lastModified) {
+        
+        this.appointmentId = appointmentId;
         this.patientId = patientId;
         this.clinicianId = clinicianId;
         this.facilityId = facilityId;
@@ -46,16 +49,25 @@ public class Appointment {
         this.createdDate = createdDate;
         this.lastModified = lastModified;
     }
-
+    
+    // Backward compatibility methods
+    public String getId() {
+        return appointmentId;
+    }
+    
+    public void setId(String id) {
+        this.appointmentId = id;
+    }
+    
     // ============================================================
     // REQUIRED FIELDS (as per specification)
     // ============================================================
     public String getAppointmentId() {
-        return id;
+        return appointmentId;
     }
     
     public void setAppointmentId(String appointmentId) {
-        this.id = appointmentId;
+        this.appointmentId = appointmentId;
     }
     
     public String getDate() {
@@ -75,33 +87,101 @@ public class Appointment {
     }
     
     // ============================================================
-    // EXISTING GETTERS AND SETTERS
+    // ALL CSV FIELDS - GETTERS AND SETTERS
     // ============================================================
-    public String getId()                { return id; }
-    public String getPatientId()         { return patientId; }
-    public String getClinicianId()       { return clinicianId; }
-    public String getFacilityId()        { return facilityId; }
-    public String getAppointmentDate()   { return appointmentDate; }
-    public String getAppointmentTime()   { return appointmentTime; }
-    public String getDurationMinutes()   { return durationMinutes; }
-    public String getAppointmentType()   { return appointmentType; }
-    public String getStatus()            { return status; }
-    public String getReasonForVisit()    { return reasonForVisit; }
-    public String getNotes()             { return notes; }
-    public String getCreatedDate()       { return createdDate; }
-    public String getLastModified()      { return lastModified; }
-
-    public void setId(String id)                          { this.id = id; }
-    public void setPatientId(String patientId)            { this.patientId = patientId; }
-    public void setClinicianId(String clinicianId)        { this.clinicianId = clinicianId; }
-    public void setFacilityId(String facilityId)          { this.facilityId = facilityId; }
-    public void setAppointmentDate(String appointmentDate){ this.appointmentDate = appointmentDate; }
-    public void setAppointmentTime(String appointmentTime){ this.appointmentTime = appointmentTime; }
-    public void setDurationMinutes(String durationMinutes){ this.durationMinutes = durationMinutes; }
-    public void setAppointmentType(String appointmentType){ this.appointmentType = appointmentType; }
-    public void setStatus(String status)                  { this.status = status; }
-    public void setReasonForVisit(String reasonForVisit)  { this.reasonForVisit = reasonForVisit; }
-    public void setNotes(String notes)                    { this.notes = notes; }
-    public void setCreatedDate(String createdDate)        { this.createdDate = createdDate; }
-    public void setLastModified(String lastModified)      { this.lastModified = lastModified; }
+    public String getPatientId() {
+        return patientId;
+    }
+    
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
+    }
+    
+    public String getClinicianId() {
+        return clinicianId;
+    }
+    
+    public void setClinicianId(String clinicianId) {
+        this.clinicianId = clinicianId;
+    }
+    
+    public String getFacilityId() {
+        return facilityId;
+    }
+    
+    public void setFacilityId(String facilityId) {
+        this.facilityId = facilityId;
+    }
+    
+    public String getAppointmentDate() {
+        return appointmentDate;
+    }
+    
+    public void setAppointmentDate(String appointmentDate) {
+        this.appointmentDate = appointmentDate;
+    }
+    
+    public String getAppointmentTime() {
+        return appointmentTime;
+    }
+    
+    public void setAppointmentTime(String appointmentTime) {
+        this.appointmentTime = appointmentTime;
+    }
+    
+    public String getDurationMinutes() {
+        return durationMinutes;
+    }
+    
+    public void setDurationMinutes(String durationMinutes) {
+        this.durationMinutes = durationMinutes;
+    }
+    
+    public String getAppointmentType() {
+        return appointmentType;
+    }
+    
+    public void setAppointmentType(String appointmentType) {
+        this.appointmentType = appointmentType;
+    }
+    
+    public String getStatus() {
+        return status;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
+    }
+    
+    public String getReasonForVisit() {
+        return reasonForVisit;
+    }
+    
+    public void setReasonForVisit(String reasonForVisit) {
+        this.reasonForVisit = reasonForVisit;
+    }
+    
+    public String getNotes() {
+        return notes;
+    }
+    
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+    
+    public String getCreatedDate() {
+        return createdDate;
+    }
+    
+    public void setCreatedDate(String createdDate) {
+        this.createdDate = createdDate;
+    }
+    
+    public String getLastModified() {
+        return lastModified;
+    }
+    
+    public void setLastModified(String lastModified) {
+        this.lastModified = lastModified;
+    }
 }

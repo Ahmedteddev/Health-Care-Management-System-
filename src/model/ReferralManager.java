@@ -178,7 +178,7 @@ if (referredToClinician != null) {
             bw.write("Reason for Referral: " + r.getReferralReason());
             bw.newLine();
 
-            bw.write("Requested Service: " + r.getRequestedService());
+            bw.write("Requested Investigations: " + r.getRequestedInvestigations());
             bw.newLine();
 
             bw.write("Status: " + r.getStatus());

@@ -2,59 +2,72 @@ package model;
 
 /**
  * Clinician class extending Staff.
- * Represents clinical staff members with medical qualifications.
+ * Matches CSV structure: clinician_id, first_name, last_name, title, speciality,
+ * gmc_number, phone_number, email, workplace_id, workplace_type, employment_status, start_date
  */
 public class Clinician extends Staff {
     
-    private String qualification;
-    private String firstName;
-    private String lastName;
+    private String clinicianId;
     private String title;
     private String speciality;
     private String gmcNumber;
-    private String phone;
     private String workplaceId;
     private String workplaceType;
-    private String employmentStatus;
+    private String qualification;
     
     public Clinician() {
         super();
     }
     
-    public Clinician(String username, String password, String email,
-                     String staffId, String department, String hireDate,
-                     String qualification) {
-        super(username, password, email, staffId, department, hireDate);
-        this.qualification = qualification;
-    }
-    
-    // Backward compatibility constructor (for CSV loading)
+    /**
+     * Full-parameter constructor for CSV loading (all 12 fields).
+     * Note: email is inherited from User class.
+     */
     public Clinician(String clinicianId, String firstName, String lastName,
                      String title, String speciality, String gmcNumber,
-                     String phone, String email, String workplaceId,
+                     String phoneNumber, String email, String workplaceId,
                      String workplaceType, String employmentStatus,
                      String startDate) {
-        // Generate username from email or clinicianId
-        super(generateUsername(email, clinicianId), "default", email,
-              clinicianId, determineDepartment(speciality, workplaceType), startDate);
-        this.firstName = firstName;
-        this.lastName = lastName;
+        // Call Staff constructor with appropriate parameters
+        // Note: Staff needs role, department, facilityId - we'll derive these
+        super(clinicianId, firstName, lastName,
+              determineRole(title, speciality),  // role
+              determineDepartment(speciality, workplaceType),  // department
+              workplaceId,  // facilityId (using workplaceId)
+              phoneNumber, email, employmentStatus, startDate,
+              null,  // lineManager (not in CSV)
+              null); // accessLevel (not in CSV)
+        
+        this.clinicianId = clinicianId;
         this.title = title;
         this.speciality = speciality;
         this.gmcNumber = gmcNumber;
-        this.phone = phone;
         this.workplaceId = workplaceId;
         this.workplaceType = workplaceType;
-        this.employmentStatus = employmentStatus;
         // Set qualification based on title/speciality
         this.qualification = determineQualification(title, speciality, gmcNumber);
     }
     
-    private static String generateUsername(String email, String clinicianId) {
-        if (email != null && !email.isEmpty()) {
-            return email.split("@")[0];
+    /**
+     * Constructor for User-based initialization.
+     */
+    public Clinician(String username, String password, String email,
+                     String staffId, String department, String hireDate,
+                     String qualification) {
+        super(username, password, email, staffId, department, hireDate);
+        this.clinicianId = staffId;  // clinicianId maps to staffId
+        this.qualification = qualification;
+    }
+    
+    private static String determineRole(String title, String speciality) {
+        if (title != null && title.toLowerCase().contains("nurse")) {
+            return "Nurse";
+        } else if (title != null && title.toLowerCase().contains("consultant")) {
+            return "Consultant";
+        } else if (title != null && title.equalsIgnoreCase("GP")) {
+            return "GP";
         }
-        return clinicianId;
+        return "Clinician";
     }
     
     private static String determineDepartment(String speciality, String workplaceType) {
@@ -75,45 +88,37 @@ public class Clinician extends Staff {
     
     // Backward compatibility methods
     public String getId() {
-        return getStaffId();
+        return clinicianId != null ? clinicianId : getStaffId();
     }
     
     public void setId(String id) {
+        this.clinicianId = id;
         setStaffId(id);
     }
     
     public String getFullName() {
+        String firstName = getFirstName();
+        String lastName = getLastName();
         if (title != null && !title.isEmpty()) {
             return title + " " + firstName + " " + lastName;
         }
-        return firstName + " " + lastName;
+        if (firstName != null && lastName != null) {
+            return firstName + " " + lastName;
+        }
+        return clinicianId;
     }
     
     // ============================================================
-    // GETTERS AND SETTERS
+    // ALL CSV FIELDS - GETTERS AND SETTERS
     // ============================================================
-    public String getQualification() {
-        return qualification;
+    public String getClinicianId() {
+        return clinicianId;
     }
     
-    public void setQualification(String qualification) {
-        this.qualification = qualification;
-    }
-    
-    public String getFirstName() {
-        return firstName;
-    }
-    
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-    
-    public String getLastName() {
-        return lastName;
-    }
-    
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setClinicianId(String clinicianId) {
+        this.clinicianId = clinicianId;
+        // Also update staffId for consistency
+        setStaffId(clinicianId);
     }
     
     public String getTitle() {
@@ -140,20 +145,14 @@ public class Clinician extends Staff {
         this.gmcNumber = gmcNumber;
     }
     
-    public String getPhone() {
-        return phone;
-    }
-    
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-    
     public String getWorkplaceId() {
         return workplaceId;
     }
     
     public void setWorkplaceId(String workplaceId) {
         this.workplaceId = workplaceId;
+        // Also update facilityId for consistency
+        setFacilityId(workplaceId);
     }
     
     public String getWorkplaceType() {
@@ -164,11 +163,25 @@ public class Clinician extends Staff {
         this.workplaceType = workplaceType;
     }
     
-    public String getEmploymentStatus() {
-        return employmentStatus;
+    public String getQualification() {
+        return qualification;
     }
     
-    public void setEmploymentStatus(String employmentStatus) {
-        this.employmentStatus = employmentStatus;
+    public void setQualification(String qualification) {
+        this.qualification = qualification;
     }
+    
+    // Additional getters for phoneNumber (inherited from Staff but may need override)
+    @Override
+    public String getPhoneNumber() {
+        return super.getPhoneNumber();
+    }
+    
+    @Override
+    public void setPhoneNumber(String phoneNumber) {
+        super.setPhoneNumber(phoneNumber);
+    }
+    
+    // Note: employmentStatus and startDate are inherited from Staff
+    // firstName, lastName, email are also inherited
 }

@@ -2,36 +2,59 @@ package model;
 
 /**
  * Staff class extending User.
- * Represents staff members in the Healthcare Management System.
+ * Matches CSV structure: staff_id, first_name, last_name, role, department,
+ * facility_id, phone_number, email, employment_status, start_date, line_manager, access_level
  */
 public class Staff extends User {
     
     private String staffId;
+    private String firstName;
+    private String lastName;
+    private String role;
     private String department;
-    private String hireDate;
+    private String facilityId;
+    private String phoneNumber;
+    private String employmentStatus;
+    private String startDate;
+    private String lineManager;
+    private String accessLevel;
     
     public Staff() {
         super();
     }
     
+    /**
+     * Full-parameter constructor for CSV loading (all 12 fields).
+     * Note: email is inherited from User class.
+     */
+    public Staff(String staffId, String firstName, String lastName,
+                 String role, String department, String facilityId,
+                 String phoneNumber, String email, String employmentStatus,
+                 String startDate, String lineManager, String accessLevel) {
+        // Generate username from email or staffId
+        super(generateUsername(email, staffId), "default", email);
+        this.staffId = staffId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.role = role;
+        this.department = department;
+        this.facilityId = facilityId;
+        this.phoneNumber = phoneNumber;
+        this.employmentStatus = employmentStatus;
+        this.startDate = startDate;
+        this.lineManager = lineManager;
+        this.accessLevel = accessLevel;
+    }
+    
+    /**
+     * Constructor for User-based initialization.
+     */
     public Staff(String username, String password, String email,
                  String staffId, String department, String hireDate) {
         super(username, password, email);
         this.staffId = staffId;
         this.department = department;
-        this.hireDate = hireDate;
-    }
-    
-    // Backward compatibility constructor (for CSV loading)
-    public Staff(String staffId, String firstName, String lastName,
-                 String phone, String email, String role, String department,
-                 String facilityId, String employmentStatus, String startDate,
-                 String lineManager, String accessLevel) {
-        // Generate username from email or staffId
-        super(generateUsername(email, staffId), "default", email);
-        this.staffId = staffId;
-        this.department = department;
-        this.hireDate = startDate;  // hireDate maps to startDate from CSV
+        this.startDate = hireDate;  // startDate maps to hireDate
     }
     
     private static String generateUsername(String email, String staffId) {
@@ -51,13 +74,22 @@ public class Staff extends User {
     }
     
     public String getName() {
-        // This would need firstName/lastName if we want to keep it
-        // For now, return staffId
+        if (firstName != null && lastName != null) {
+            return firstName + " " + lastName;
+        }
         return staffId;
     }
     
+    public String getHireDate() {
+        return startDate;
+    }
+    
+    public void setHireDate(String hireDate) {
+        this.startDate = hireDate;
+    }
+    
     // ============================================================
-    // GETTERS AND SETTERS
+    // ALL CSV FIELDS - GETTERS AND SETTERS
     // ============================================================
     public String getStaffId() {
         return staffId;
@@ -65,6 +97,30 @@ public class Staff extends User {
     
     public void setStaffId(String staffId) {
         this.staffId = staffId;
+    }
+    
+    public String getFirstName() {
+        return firstName;
+    }
+    
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+    
+    public String getLastName() {
+        return lastName;
+    }
+    
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+    
+    public String getRole() {
+        return role;
+    }
+    
+    public void setRole(String role) {
+        this.role = role;
     }
     
     public String getDepartment() {
@@ -75,11 +131,51 @@ public class Staff extends User {
         this.department = department;
     }
     
-    public String getHireDate() {
-        return hireDate;
+    public String getFacilityId() {
+        return facilityId;
     }
     
-    public void setHireDate(String hireDate) {
-        this.hireDate = hireDate;
+    public void setFacilityId(String facilityId) {
+        this.facilityId = facilityId;
+    }
+    
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+    
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+    
+    public String getEmploymentStatus() {
+        return employmentStatus;
+    }
+    
+    public void setEmploymentStatus(String employmentStatus) {
+        this.employmentStatus = employmentStatus;
+    }
+    
+    public String getStartDate() {
+        return startDate;
+    }
+    
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
+    }
+    
+    public String getLineManager() {
+        return lineManager;
+    }
+    
+    public void setLineManager(String lineManager) {
+        this.lineManager = lineManager;
+    }
+    
+    public String getAccessLevel() {
+        return accessLevel;
+    }
+    
+    public void setAccessLevel(String accessLevel) {
+        this.accessLevel = accessLevel;
     }
 }
