@@ -10,36 +10,43 @@ public class GPController {
     private final GPDashboard mainView;
     private final DashboardPanel dashboardPanel;
     private final AppointmentPanel appointmentPanel;
+    private final MedicalRecordPanel medicalRecordPanel;
     private final AppointmentRepository appointmentRepository;
     private final PatientRepository patientRepository;
     private final ClinicianRepository clinicianRepository;
     private final FacilityRepository facilityRepository;
+    private final PrescriptionRepository prescriptionRepository;
     private final Clinician clinician;
+    private MedicalRecordController medicalRecordController;
     
     public GPController(GPDashboard mainView,
                        AppointmentRepository appointmentRepository,
                        PatientRepository patientRepository,
                        ClinicianRepository clinicianRepository,
-                       FacilityRepository facilityRepository) {
+                       FacilityRepository facilityRepository,
+                       PrescriptionRepository prescriptionRepository) {
         this.mainView = mainView;
         this.appointmentRepository = appointmentRepository;
         this.patientRepository = patientRepository;
         this.clinicianRepository = clinicianRepository;
         this.facilityRepository = facilityRepository;
+        this.prescriptionRepository = prescriptionRepository;
         this.clinician = mainView.getClinician();
         
         this.dashboardPanel = new DashboardPanel();
         this.appointmentPanel = new AppointmentPanel();
+        this.medicalRecordPanel = new MedicalRecordPanel();
         
         setupNavigation();
         setupDashboard();
         setupAppointments();
+        setupMedicalRecords();
     }
     
     private void setupNavigation() {
         mainView.addCard("Dashboard", dashboardPanel);
         mainView.addCard("Appointments", appointmentPanel);
-        mainView.addCard("Medical Records", new JPanel());
+        mainView.addCard("Medical Records", medicalRecordPanel);
         
         mainView.getDashboardButton().addActionListener(e -> {
             mainView.showCard("Dashboard");
@@ -49,7 +56,9 @@ public class GPController {
             mainView.showCard("Appointments");
             refreshAppointmentsTable();
         });
-        mainView.getMedicalRecordsButton().addActionListener(e -> mainView.showCard("Medical Records"));
+        mainView.getMedicalRecordsButton().addActionListener(e -> {
+            mainView.showCard("Medical Records");
+        });
         
         mainView.showCard("Dashboard");
     }
@@ -85,6 +94,18 @@ public class GPController {
         appointmentPanel.getRescheduleButton().addActionListener(e -> rescheduleAppointment());
         appointmentPanel.getEditButton().addActionListener(e -> editAppointment());
         appointmentPanel.getCancelButton().addActionListener(e -> cancelAppointment());
+    }
+    
+    private void setupMedicalRecords() {
+        // Create medical record controller
+        medicalRecordController = new MedicalRecordController(
+            medicalRecordPanel,
+            patientRepository,
+            appointmentRepository,
+            prescriptionRepository,
+            clinicianRepository,
+            clinician
+        );
     }
     
     // Load appointments for dashboard - shows only this clinician's appointments

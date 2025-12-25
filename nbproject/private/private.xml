@@ -3,20 +3,17 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/view/AppointmentView.java</file>
+            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/CsvUtils.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/Main/Main.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/data/appointments.csv</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/Prescription.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/Staff.java</file>
-            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/controller/PatientController.java</file>
-            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/PatientRepository.java</file>
-            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/controller/AppointmentController.java</file>
-            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/AppointmentRepository.java</file>
-            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/CsvUtils.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/PrescriptionRepository.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/Appointment.java</file>
+            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/PatientRepository.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/Patient.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/Facility.java</file>
+            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/AppointmentRepository.java</file>
         </group>
     </open-files>
 </project-private>

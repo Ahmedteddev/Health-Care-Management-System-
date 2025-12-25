@@ -30,10 +30,8 @@ public class Main {
                 FacilityRepository fr =
                         new FacilityRepository("src/data/facilities.csv");
 
-                // Note: PrescriptionRepository and ReferralManager are available
-                // but not used in the GP Dashboard. Uncomment if needed:
-                // PrescriptionRepository pResR =
-                //         new PrescriptionRepository("src/data/prescriptions.csv");
+                PrescriptionRepository pResR =
+                        new PrescriptionRepository("src/data/prescriptions.csv");
                 // ReferralManager rm = ReferralManager.getInstance(
                 //         "src/data/referrals.csv", pr, cr, fr,
                 //         "src/data/referrals_output.txt");
@@ -58,7 +56,7 @@ public class Main {
                 GPDashboard dashboard = new GPDashboard(clinician);
 
                 // Create GP Controller to handle interactions
-                GPController gpController = new GPController(dashboard, ar, pr, cr, fr);
+                GPController gpController = new GPController(dashboard, ar, pr, cr, fr, pResR);
 
                 // Show the dashboard
                 dashboard.setVisible(true);
