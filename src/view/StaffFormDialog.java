@@ -6,20 +6,31 @@ import java.awt.*;
 
 public class StaffFormDialog extends JDialog {
     
+    private JTextField staffIdField;
     private JTextField firstNameField;
     private JTextField lastNameField;
     private JComboBox<String> roleComboBox;
     private JTextField departmentField;
     private JTextField emailField;
     private JTextField phoneField;
+    private JComboBox<String> accessLevelComboBox;
+    private JTextField startDateField;
     private JButton saveButton;
     private JButton cancelButton;
     
     private boolean saved = false;
     
-    // Role options
+    // Role options (excluding GP and Nurse - those use ClinicianFormDialog)
     private static final String[] ROLES = {
-        "GP", "Nurse", "Admin", "Receptionist"
+        "Admin", "Receptionist", "Practice Manager", "Medical Secretary", 
+        "Healthcare Assistant", "Hospital Administrator", "Ward Clerk", 
+        "Porter", "Appointments Coordinator", "Medical Records Clerk", 
+        "Children's Unit Coordinator"
+    };
+    
+    // Access Level options
+    private static final String[] ACCESS_LEVELS = {
+        "Basic", "Standard", "Manager"
     };
     
     public StaffFormDialog(JFrame parent, String title) {
@@ -28,18 +39,23 @@ public class StaffFormDialog extends JDialog {
         initializeComponents();
         setupLayout();
         
-        setMinimumSize(new Dimension(450, 300));
+        setMinimumSize(new Dimension(500, 400));
         pack();
         setLocationRelativeTo(parent);
     }
     
     private void initializeComponents() {
+        staffIdField = new JTextField(20);
+        staffIdField.setEditable(false); // ID is read-only when editing
+        
         firstNameField = new JTextField(20);
         lastNameField = new JTextField(20);
         roleComboBox = new JComboBox<>(ROLES);
         departmentField = new JTextField(20);
         emailField = new JTextField(20);
         phoneField = new JTextField(20);
+        accessLevelComboBox = new JComboBox<>(ACCESS_LEVELS);
+        startDateField = new JTextField(20);
         
         saveButton = new JButton("Save");
         cancelButton = new JButton("Cancel");
@@ -73,6 +89,13 @@ public class StaffFormDialog extends JDialog {
         
         int row = 0;
         
+        // Staff ID
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        formPanel.add(new JLabel("Staff ID:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        formPanel.add(staffIdField, gbc);
+        
+        row++;
         // First Name
         gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
         formPanel.add(new JLabel("First Name:"), gbc);
@@ -114,21 +137,38 @@ public class StaffFormDialog extends JDialog {
         gbc.gridx = 1; gbc.weightx = 1.0;
         formPanel.add(phoneField, gbc);
         
+        row++;
+        // Access Level
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        formPanel.add(new JLabel("Access Level:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        formPanel.add(accessLevelComboBox, gbc);
+        
+        row++;
+        // Start Date
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        formPanel.add(new JLabel("Start Date (YYYY-MM-DD):"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        formPanel.add(startDateField, gbc);
+        
         return formPanel;
     }
     
     /**
      * Returns a Staff object with the data from the form.
-     * Note: staffId should be set by the controller.
+     * Note: staffId should be set by the controller for new staff.
      */
     public Staff getStaffData() {
         Staff staff = new Staff();
+        staff.setStaffId(staffIdField.getText().trim());
         staff.setFirstName(firstNameField.getText().trim());
         staff.setLastName(lastNameField.getText().trim());
         staff.setRole((String) roleComboBox.getSelectedItem());
         staff.setDepartment(departmentField.getText().trim());
         staff.setEmail(emailField.getText().trim());
         staff.setPhoneNumber(phoneField.getText().trim());
+        staff.setAccessLevel((String) accessLevelComboBox.getSelectedItem());
+        staff.setStartDate(startDateField.getText().trim());
         return staff;
     }
     
@@ -140,6 +180,7 @@ public class StaffFormDialog extends JDialog {
             return;
         }
         
+        staffIdField.setText(staff.getStaffId() != null ? staff.getStaffId() : "");
         firstNameField.setText(staff.getFirstName() != null ? staff.getFirstName() : "");
         lastNameField.setText(staff.getLastName() != null ? staff.getLastName() : "");
         
@@ -151,6 +192,27 @@ public class StaffFormDialog extends JDialog {
         departmentField.setText(staff.getDepartment() != null ? staff.getDepartment() : "");
         emailField.setText(staff.getEmail() != null ? staff.getEmail() : "");
         phoneField.setText(staff.getPhoneNumber() != null ? staff.getPhoneNumber() : "");
+        
+        String accessLevel = staff.getAccessLevel();
+        if (accessLevel != null) {
+            accessLevelComboBox.setSelectedItem(accessLevel);
+        }
+        
+        startDateField.setText(staff.getStartDate() != null ? staff.getStartDate() : "");
+    }
+    
+    /**
+     * Sets the staff ID field (for new staff, ID is generated).
+     */
+    public void setStaffId(String id) {
+        staffIdField.setText(id);
+    }
+    
+    /**
+     * Makes the staff ID field editable (for new staff).
+     */
+    public void setStaffIdEditable(boolean editable) {
+        staffIdField.setEditable(editable);
     }
     
     // Button getters
@@ -170,4 +232,5 @@ public class StaffFormDialog extends JDialog {
         this.saved = saved;
     }
 }
+
 

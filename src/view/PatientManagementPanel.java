@@ -9,6 +9,10 @@ public class PatientManagementPanel extends JPanel {
     
     private JTable patientTable;
     private PatientTableModel tableModel;
+    private JTextField patientIdField;
+    private JTextField patientNameField;
+    private JTextField nhsNumberField;
+    private JButton searchButton;
     private JButton registerPatientButton;
     private JButton editPatientButton;
     private JButton deletePatientButton;
@@ -28,6 +32,13 @@ public class PatientManagementPanel extends JPanel {
         patientTable = new JTable(tableModel);
         patientTable.setRowHeight(25);
         patientTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        patientTable.getTableHeader().setReorderingAllowed(false);
+        
+        // Search fields
+        patientIdField = new JTextField(15);
+        patientNameField = new JTextField(15);
+        nhsNumberField = new JTextField(15);
+        searchButton = new JButton("Search");
         
         registerPatientButton = new JButton("Register New");
         editPatientButton = new JButton("Edit");
@@ -38,11 +49,27 @@ public class PatientManagementPanel extends JPanel {
     }
     
     private void setupLayout() {
-        setLayout(new java.awt.BorderLayout(10, 10));
+        setLayout(new java.awt.BorderLayout(15, 15));
         setBorder(javax.swing.BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        
+        // Top panel with heading and search
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        
+        // Heading
+        JPanel headingPanel = createHeadingPanel();
+        topPanel.add(headingPanel);
+        topPanel.add(Box.createVerticalStrut(10));
+        
+        // Search panel
+        JPanel searchPanel = createSearchPanel();
+        topPanel.add(searchPanel);
+        
+        add(topPanel, java.awt.BorderLayout.NORTH);
         
         // Table with scroll pane
         JScrollPane scrollPane = new JScrollPane(patientTable);
+        scrollPane.setBorder(javax.swing.BorderFactory.createTitledBorder("Patients"));
         add(scrollPane, java.awt.BorderLayout.CENTER);
         
         // Button panel
@@ -51,6 +78,29 @@ public class PatientManagementPanel extends JPanel {
         buttonPanel.add(editPatientButton);
         buttonPanel.add(deletePatientButton);
         add(buttonPanel, java.awt.BorderLayout.SOUTH);
+    }
+    
+    private JPanel createHeadingPanel() {
+        JPanel headingPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 5));
+        JLabel headingLabel = new JLabel("Patient Management");
+        headingLabel.setFont(new java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.BOLD, 18));
+        headingPanel.add(headingLabel);
+        return headingPanel;
+    }
+    
+    private JPanel createSearchPanel() {
+        JPanel searchPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 5));
+        searchPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Patient Search"));
+        
+        searchPanel.add(new JLabel("Patient ID:"));
+        searchPanel.add(patientIdField);
+        searchPanel.add(new JLabel("Name:"));
+        searchPanel.add(patientNameField);
+        searchPanel.add(new JLabel("NHS Number:"));
+        searchPanel.add(nhsNumberField);
+        searchPanel.add(searchButton);
+        
+        return searchPanel;
     }
     
     // Custom TableModel for inline editing
@@ -231,6 +281,23 @@ public class PatientManagementPanel extends JPanel {
     // Get patient table
     public JTable getPatientTable() {
         return patientTable;
+    }
+    
+    // Search field getters
+    public JTextField getPatientIdField() {
+        return patientIdField;
+    }
+    
+    public JTextField getPatientNameField() {
+        return patientNameField;
+    }
+    
+    public JTextField getNhsNumberField() {
+        return nhsNumberField;
+    }
+    
+    public JButton getSearchButton() {
+        return searchButton;
     }
 }
 

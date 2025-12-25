@@ -14,6 +14,7 @@ public class PatientManagementController {
     
     private final PatientManagementPanel view;
     private final PatientRepository patientRepository;
+    private java.util.List<Patient> allPatientsList = new java.util.ArrayList<>(); // Store all patients for filtering
     
     public PatientManagementController(PatientManagementPanel view,
                                       PatientRepository patientRepository) {
@@ -29,6 +30,12 @@ public class PatientManagementController {
         view.getRegisterPatientButton().addActionListener(new RegisterPatientListener());
         view.getEditPatientButton().addActionListener(new EditPatientListener());
         view.getDeletePatientButton().addActionListener(new DeletePatientListener());
+        view.getSearchButton().addActionListener(new SearchListener());
+        
+        // Enter key in search fields also triggers search
+        view.getPatientIdField().addActionListener(new SearchListener());
+        view.getPatientNameField().addActionListener(new SearchListener());
+        view.getNhsNumberField().addActionListener(new SearchListener());
         
         // Table selection listener
         view.getPatientTable().getSelectionModel().addListSelectionListener(new PatientSelectionListener());
@@ -36,7 +43,62 @@ public class PatientManagementController {
     
     // Load patients into table (public for external refresh)
     public void loadPatients() {
-        view.setPatients(patientRepository.getAll());
+        allPatientsList.clear();
+        allPatientsList.addAll(patientRepository.getAll());
+        view.setPatients(allPatientsList);
+    }
+    
+    // Filter patients by search criteria
+    private void filterPatients() {
+        String patientId = view.getPatientIdField().getText().trim().toLowerCase();
+        String patientName = view.getPatientNameField().getText().trim().toLowerCase();
+        String nhsNumber = view.getNhsNumberField().getText().trim().toLowerCase();
+        
+        java.util.List<Patient> filteredList = new java.util.ArrayList<>();
+        
+        for (Patient patient : allPatientsList) {
+            boolean matches = true;
+            
+            // Filter by Patient ID
+            if (!patientId.isEmpty()) {
+                String pId = patient.getPatientId() != null ? patient.getPatientId().toLowerCase() : "";
+                if (!pId.contains(patientId)) {
+                    matches = false;
+                }
+            }
+            
+            // Filter by Name
+            if (matches && !patientName.isEmpty()) {
+                String fullName = patient.getFullName() != null ? patient.getFullName().toLowerCase() : "";
+                String firstName = patient.getFirstName() != null ? patient.getFirstName().toLowerCase() : "";
+                String lastName = patient.getLastName() != null ? patient.getLastName().toLowerCase() : "";
+                if (!fullName.contains(patientName) && !firstName.contains(patientName) && !lastName.contains(patientName)) {
+                    matches = false;
+                }
+            }
+            
+            // Filter by NHS Number
+            if (matches && !nhsNumber.isEmpty()) {
+                String pNhsNumber = patient.getNhsNumber() != null ? patient.getNhsNumber().toLowerCase() : "";
+                if (!pNhsNumber.contains(nhsNumber)) {
+                    matches = false;
+                }
+            }
+            
+            if (matches) {
+                filteredList.add(patient);
+            }
+        }
+        
+        view.setPatients(filteredList);
+    }
+    
+    // Search listener
+    private class SearchListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            filterPatients();
+        }
     }
     
     // Register new patient handler
@@ -75,8 +137,9 @@ public class PatientManagementController {
                 // Add to repository (saves to CSV)
                 patientRepository.addAndAppend(patientData);
                 
-                // Refresh table from repository
+                // Refresh table from repository and apply current filter
                 loadPatients();
+                filterPatients();
                 
                 dialog.dispose();
                 JOptionPane.showMessageDialog(view, "Patient registered successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -129,8 +192,9 @@ public class PatientManagementController {
                 // Update the object and call updatePatient
                 patientRepository.updatePatient(updatedPatient);
                 
-                // Refresh table from repository
+                // Refresh table from repository and apply current filter
                 loadPatients();
+                filterPatients();
                 
                 dialog.dispose();
                 JOptionPane.showMessageDialog(view, "Patient updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -171,8 +235,9 @@ public class PatientManagementController {
                     // Save updated list to CSV
                     patientRepository.saveAll();
                     
-                    // Refresh the view immediately
+                    // Refresh the view immediately and apply current filter
                     loadPatients();
+                    filterPatients();
                     
                     JOptionPane.showMessageDialog(view, "Patient record deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
                 } else {
@@ -198,5 +263,6 @@ public class PatientManagementController {
         return view.getPatientTable();
     }
 }
+
 
 

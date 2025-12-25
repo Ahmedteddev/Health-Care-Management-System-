@@ -9,13 +9,25 @@ public class StaffManagementPanel extends JPanel {
     
     private JTable staffTable;
     private DefaultTableModel tableModel;
-    private JButton addStaffButton;
+    private JTextField searchField;
+    private JComboBox<String> filterComboBox;
+    private JButton searchButton;
+    private JButton addAdminStaffButton;
+    private JButton addClinicianButton;
     private JButton editStaffButton;
     private JButton removeStaffButton;
     
     // Table column names
     private static final String[] COLUMN_NAMES = {
         "Staff ID", "First Name", "Last Name", "Role", "Department", "Email", "Phone"
+    };
+    
+    // All roles from staff.csv and clinicians.csv
+    private static final String[] ROLE_FILTERS = {
+        "All", "GP", "Consultant", "Nurse", "Practice Manager", "Receptionist", 
+        "Medical Secretary", "Healthcare Assistant", "Hospital Administrator", 
+        "Ward Clerk", "Porter", "Appointments Coordinator", "Medical Records Clerk", 
+        "Children's Unit Coordinator"
     };
     
     public StaffManagementPanel() {
@@ -35,8 +47,15 @@ public class StaffManagementPanel extends JPanel {
         staffTable = new JTable(tableModel);
         staffTable.setRowHeight(25);
         staffTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        staffTable.getTableHeader().setReorderingAllowed(false);
         
-        addStaffButton = new JButton("Add Staff");
+        // Search components
+        searchField = new JTextField(20);
+        filterComboBox = new JComboBox<>(ROLE_FILTERS);
+        searchButton = new JButton("Search");
+        
+        addAdminStaffButton = new JButton("Add Admin/Staff");
+        addClinicianButton = new JButton("Add Clinician");
         editStaffButton = new JButton("Edit Selected");
         removeStaffButton = new JButton("Remove Staff");
         
@@ -45,19 +64,57 @@ public class StaffManagementPanel extends JPanel {
     }
     
     private void setupLayout() {
-        setLayout(new java.awt.BorderLayout(10, 10));
+        setLayout(new java.awt.BorderLayout(15, 15));
         setBorder(javax.swing.BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
-        // Table with scroll pane
+        // Top panel with heading and search/filter
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        
+        // Heading
+        JPanel headingPanel = createHeadingPanel();
+        topPanel.add(headingPanel);
+        topPanel.add(Box.createVerticalStrut(10));
+        
+        // Search and Filter Panel
+        JPanel searchPanel = createSearchPanel();
+        topPanel.add(searchPanel);
+        
+        add(topPanel, java.awt.BorderLayout.NORTH);
+        
+        // Table with scroll pane (Center)
         JScrollPane scrollPane = new JScrollPane(staffTable);
+        scrollPane.setBorder(javax.swing.BorderFactory.createTitledBorder("Staff & Clinicians"));
         add(scrollPane, java.awt.BorderLayout.CENTER);
         
-        // Button panel
+        // Button panel (South)
         JPanel buttonPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 5));
-        buttonPanel.add(addStaffButton);
+        buttonPanel.add(addAdminStaffButton);
+        buttonPanel.add(addClinicianButton);
         buttonPanel.add(editStaffButton);
         buttonPanel.add(removeStaffButton);
         add(buttonPanel, java.awt.BorderLayout.SOUTH);
+    }
+    
+    private JPanel createHeadingPanel() {
+        JPanel headingPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 5));
+        JLabel headingLabel = new JLabel("Staff Management");
+        headingLabel.setFont(new java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.BOLD, 18));
+        headingPanel.add(headingLabel);
+        return headingPanel;
+    }
+    
+    private JPanel createSearchPanel() {
+        JPanel searchPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 5));
+        searchPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Search & Filter"));
+        
+        searchPanel.add(new JLabel("Search:"));
+        searchPanel.add(searchField);
+        searchPanel.add(new JLabel("Filter by Role:"));
+        searchPanel.add(filterComboBox);
+        searchPanel.add(searchButton);
+        
+        return searchPanel;
     }
     
     // Public methods
@@ -94,8 +151,12 @@ public class StaffManagementPanel extends JPanel {
     }
     
     // Button getters
-    public JButton getAddStaffButton() {
-        return addStaffButton;
+    public JButton getAddAdminStaffButton() {
+        return addAdminStaffButton;
+    }
+    
+    public JButton getAddClinicianButton() {
+        return addClinicianButton;
     }
     
     public JButton getEditStaffButton() {
@@ -104,6 +165,15 @@ public class StaffManagementPanel extends JPanel {
     
     public JButton getRemoveStaffButton() {
         return removeStaffButton;
+    }
+    
+    // Get role from selected row
+    public String getSelectedRole() {
+        int row = staffTable.getSelectedRow();
+        if (row >= 0) {
+            return (String) tableModel.getValueAt(row, 3); // Role is column 3
+        }
+        return null;
     }
     
     // Enable/disable buttons based on selection
@@ -115,6 +185,19 @@ public class StaffManagementPanel extends JPanel {
     // Get staff table
     public JTable getStaffTable() {
         return staffTable;
+    }
+    
+    // Search and filter getters
+    public JTextField getSearchField() {
+        return searchField;
+    }
+    
+    public JComboBox<String> getFilterComboBox() {
+        return filterComboBox;
+    }
+    
+    public JButton getSearchButton() {
+        return searchButton;
     }
 }
 

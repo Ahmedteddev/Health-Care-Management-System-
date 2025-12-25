@@ -7,13 +7,34 @@ import java.util.List;
 
 public class ClinicianRepository {
 
+    private static ClinicianRepository instance;
     private final List<Clinician> clinicians = new ArrayList<>();
     private final String csvPath;
     private static final int EXPECTED_COLUMNS = 12;
 
+    /**
+     * Public constructor for backward compatibility.
+     * Creates a new instance. If instance is null, sets it as the singleton instance.
+     * Note: For new code, use getInstance() instead for proper singleton pattern.
+     */
     public ClinicianRepository(String csvPath) {
         this.csvPath = csvPath;
         load();
+        // If instance is null, set it (allows singleton pattern to work)
+        if (instance == null) {
+            instance = this;
+        }
+    }
+    
+    /**
+     * Public static method to get the singleton instance.
+     * Implements lazy initialization.
+     */
+    public static synchronized ClinicianRepository getInstance(String csvPath) {
+        if (instance == null) {
+            instance = new ClinicianRepository(csvPath);
+        }
+        return instance;
     }
     
     public List<String> getAllIds() {
@@ -120,15 +141,90 @@ public class ClinicianRepository {
     }
 
     // ============================================================
+    // UPDATE
+    // ============================================================
+    /**
+     * Updates an existing clinician in the repository and saves to CSV.
+     * 
+     * @param clinician The updated Clinician object
+     */
+    public void updateClinician(Clinician clinician) {
+        if (clinician == null) {
+            System.err.println("Cannot update null clinician.");
+            return;
+        }
+        
+        // Find and update the clinician in the list
+        for (int i = 0; i < clinicians.size(); i++) {
+            if (clinicians.get(i).getClinicianId().equals(clinician.getClinicianId())) {
+                clinicians.set(i, clinician);
+                // Save all to CSV
+                saveAll();
+                System.out.println("Successfully updated clinician " + clinician.getClinicianId());
+                return;
+            }
+        }
+        
+        System.err.println("Clinician with ID " + clinician.getClinicianId() + " not found for update.");
+    }
+    
+    // ============================================================
     // REMOVE
     // ============================================================
     public void remove(Clinician c) {
-        clinicians.remove(c);
+        if (c != null) {
+            clinicians.remove(c);
+        }
     }
 
     public Clinician findById(String id) {
         for (Clinician c : clinicians)
-            if (c.getId().equals(id)) return c;
+            if (c.getId().equals(id) || (c.getClinicianId() != null && c.getClinicianId().equals(id))) return c;
         return null;
+    }
+    
+    /**
+     * Saves all clinicians to the CSV file.
+     */
+    public void saveAll() {
+        try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(csvPath))) {
+            // Write header
+            bw.write("clinician_id,first_name,last_name,title,speciality,gmc_number,phone_number,email,workplace_id,workplace_type,employment_status,start_date");
+            bw.newLine();
+            
+            // Write all clinicians
+            for (Clinician c : clinicians) {
+                bw.write(escapeCsv(c.getClinicianId()) + ",");
+                bw.write(escapeCsv(c.getFirstName()) + ",");
+                bw.write(escapeCsv(c.getLastName()) + ",");
+                bw.write(escapeCsv(c.getTitle()) + ",");
+                bw.write(escapeCsv(c.getSpeciality()) + ",");
+                bw.write(escapeCsv(c.getGmcNumber()) + ",");
+                bw.write(escapeCsv(c.getPhoneNumber()) + ",");
+                bw.write(escapeCsv(c.getEmail()) + ",");
+                bw.write(escapeCsv(c.getWorkplaceId()) + ",");
+                bw.write(escapeCsv(c.getWorkplaceType()) + ",");
+                bw.write(escapeCsv(c.getEmploymentStatus()) + ",");
+                bw.write(escapeCsv(c.getStartDate()));
+                bw.newLine();
+            }
+            
+        } catch (java.io.IOException ex) {
+            System.err.println("Failed to save clinicians to CSV file: " + csvPath);
+            System.err.println("Error: " + ex.getMessage());
+        }
+    }
+    
+    /**
+     * Escapes CSV values that contain commas or quotes.
+     */
+    private String escapeCsv(String value) {
+        if (value == null) {
+            return "";
+        }
+        if (value.contains(",") || value.contains("\"")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 }

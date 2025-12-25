@@ -146,7 +146,8 @@ public class GPController {
         // Create staff management controller
         staffManagementController = new StaffManagementController(
             staffManagementPanel,
-            staffRepository
+            staffRepository,
+            clinicianRepository
         );
     }
     
