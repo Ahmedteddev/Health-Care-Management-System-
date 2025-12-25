@@ -8,18 +8,11 @@ public class DashboardPanel extends JPanel {
     
     private JTable appointmentsTable;
     private DefaultTableModel appointmentsTableModel;
-    private JTable historyTable;
-    private DefaultTableModel historyTableModel;
-    private JTextField searchField;
-    private JButton searchButton;
     private JButton refreshButton;
     
+    // Updated columns: ID, Date, Time, Patient Name, Clinician Name, Facility, Reason, Status
     private static final String[] APPOINTMENT_COLUMN_NAMES = {
-        "Time", "Patient ID", "Patient Name", "Reason", "Status"
-    };
-    
-    private static final String[] HISTORY_COLUMN_NAMES = {
-        "Date", "Clinician", "Facility", "Reason", "Outcome"
+        "ID", "Date", "Time", "Patient Name", "Clinician Name", "Facility", "Reason", "Status"
     };
     
     public DashboardPanel() {
@@ -28,6 +21,7 @@ public class DashboardPanel extends JPanel {
     }
     
     private void initializeComponents() {
+        // Create table model with updated columns
         appointmentsTableModel = new DefaultTableModel(APPOINTMENT_COLUMN_NAMES, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -39,19 +33,6 @@ public class DashboardPanel extends JPanel {
         appointmentsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         appointmentsTable.setRowHeight(25);
         
-        historyTableModel = new DefaultTableModel(HISTORY_COLUMN_NAMES, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        
-        historyTable = new JTable(historyTableModel);
-        historyTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        historyTable.setRowHeight(25);
-        
-        searchField = new JTextField(15);
-        searchButton = new JButton("Search");
         refreshButton = new JButton("Refresh");
     }
     
@@ -59,28 +40,14 @@ public class DashboardPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
+        // Header with refresh button
         JPanel headerPanel = createHeaderPanel();
         add(headerPanel, BorderLayout.NORTH);
         
-        JPanel centerPanel = new JPanel();
-        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
-        
+        // Appointments table - full width (history table removed)
         JScrollPane appointmentsScrollPane = new JScrollPane(appointmentsTable);
-        appointmentsScrollPane.setBorder(BorderFactory.createTitledBorder("My Appointments"));
-        appointmentsScrollPane.setPreferredSize(new Dimension(0, 300));
-        centerPanel.add(appointmentsScrollPane);
-        
-        JPanel searchPanel = createSearchPanel();
-        centerPanel.add(Box.createVerticalStrut(15));
-        centerPanel.add(searchPanel);
-        centerPanel.add(Box.createVerticalStrut(15));
-        
-        JScrollPane historyScrollPane = new JScrollPane(historyTable);
-        historyScrollPane.setBorder(BorderFactory.createTitledBorder("Patient Medical History"));
-        historyScrollPane.setPreferredSize(new Dimension(0, 300));
-        centerPanel.add(historyScrollPane);
-        
-        add(centerPanel, BorderLayout.CENTER);
+        appointmentsScrollPane.setBorder(BorderFactory.createTitledBorder("Today's Appointments"));
+        add(appointmentsScrollPane, BorderLayout.CENTER);
     }
     
     private JPanel createHeaderPanel() {
@@ -89,59 +56,21 @@ public class DashboardPanel extends JPanel {
         return headerPanel;
     }
     
-    private JPanel createSearchPanel() {
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        searchPanel.setBorder(BorderFactory.createTitledBorder("Patient Search"));
-        searchPanel.add(new JLabel("Patient ID:"));
-        searchPanel.add(searchField);
-        searchPanel.add(searchButton);
-        return searchPanel;
-    }
-    
+    // Method to add appointment row with all required fields
     public void clearAppointments() {
         appointmentsTableModel.setRowCount(0);
     }
     
-    public void addAppointmentRow(String time, String patientId, String patientName, 
-                                  String reason, String status) {
-        appointmentsTableModel.addRow(new Object[]{time, patientId, patientName, reason, status});
-    }
-    
-    public void clearHistory() {
-        historyTableModel.setRowCount(0);
-    }
-    
-    public void addHistoryRow(String date, String clinician, String facility, 
-                             String reason, String outcome) {
-        historyTableModel.addRow(new Object[]{date, clinician, facility, reason, outcome});
-    }
-    
-    public String getSelectedPatientId() {
-        int row = appointmentsTable.getSelectedRow();
-        if (row >= 0) {
-            return (String) appointmentsTableModel.getValueAt(row, 1);
-        }
-        return null;
-    }
-    
-    public String getSearchFieldText() {
-        return searchField.getText().trim();
-    }
-    
-    public void clearSearchField() {
-        searchField.setText("");
+    public void addAppointmentRow(String id, String date, String time, String patientName, 
+                                  String clinicianName, String facility, String reason, String status) {
+        appointmentsTableModel.addRow(new Object[]{id, date, time, patientName, clinicianName, facility, reason, status});
     }
     
     public JButton getRefreshButton() {
         return refreshButton;
     }
     
-    public JButton getSearchButton() {
-        return searchButton;
-    }
-    
     public JTable getAppointmentsTable() {
         return appointmentsTable;
     }
 }
-
