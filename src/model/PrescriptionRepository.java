@@ -148,4 +148,82 @@ public class PrescriptionRepository {
         prescriptions.removeIf(p -> p.getId().equals(id));
         // No CSV rewrite—acceptable for coursework
     }
+    
+    /**
+     * Deletes all prescriptions for a specific patient.
+     * 
+     * @param patientId The patient ID whose prescriptions should be deleted
+     */
+    public void deleteAllByPatientId(String patientId) {
+        if (patientId == null || patientId.isEmpty()) {
+            System.err.println("Cannot delete prescriptions: patient ID is null or empty.");
+            return;
+        }
+        
+        // Count how many will be removed
+        int removedCount = 0;
+        for (Prescription p : prescriptions) {
+            if (patientId.equals(p.getPatientId())) {
+                removedCount++;
+            }
+        }
+        
+        // Remove all prescriptions matching the patient ID
+        prescriptions.removeIf(prescription -> patientId.equals(prescription.getPatientId()));
+        
+        // Save updated list to CSV
+        saveAll();
+        
+        System.out.println("Deleted " + removedCount + " prescription(s) for patient " + patientId);
+    }
+    
+    /**
+     * Saves all prescriptions to the CSV file.
+     */
+    public void saveAll() {
+        try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(csvPath))) {
+            // Write header
+            bw.write("prescription_id,patient_id,clinician_id,appointment_id,prescription_date,");
+            bw.write("medication_name,dosage,frequency,duration_days,quantity,instructions,");
+            bw.write("pharmacy_name,status,issue_date,collection_date");
+            bw.newLine();
+            
+            // Write all prescriptions
+            for (Prescription p : prescriptions) {
+                bw.write(escapeCsv(p.getId()) + ",");
+                bw.write(escapeCsv(p.getPatientId()) + ",");
+                bw.write(escapeCsv(p.getClinicianId()) + ",");
+                bw.write(escapeCsv(p.getAppointmentId()) + ",");
+                bw.write(escapeCsv(p.getPrescriptionDate()) + ",");
+                bw.write(escapeCsv(p.getMedication()) + ",");
+                bw.write(escapeCsv(p.getDosage()) + ",");
+                bw.write(escapeCsv(p.getFrequency()) + ",");
+                bw.write(escapeCsv(p.getDurationDays()) + ",");
+                bw.write(escapeCsv(p.getQuantity()) + ",");
+                bw.write(escapeCsv(p.getInstructions()) + ",");
+                bw.write(escapeCsv(p.getPharmacyName()) + ",");
+                bw.write(escapeCsv(p.getStatus()) + ",");
+                bw.write(escapeCsv(p.getIssueDate()) + ",");
+                bw.write(escapeCsv(p.getCollectionDate()));
+                bw.newLine();
+            }
+            
+        } catch (IOException ex) {
+            System.err.println("Failed to save prescriptions to CSV file: " + csvPath);
+            System.err.println("Error: " + ex.getMessage());
+        }
+    }
+    
+    /**
+     * Escapes CSV values that contain commas or quotes.
+     */
+    private String escapeCsv(String value) {
+        if (value == null) {
+            return "";
+        }
+        if (value.contains(",") || value.contains("\"")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
 }

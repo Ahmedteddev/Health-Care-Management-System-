@@ -97,6 +97,34 @@ public class AppointmentRepository {
             if (a.getId().equals(id)) return a;
         return null;
     }
+    
+    /**
+     * Deletes all appointments for a specific patient.
+     * 
+     * @param patientId The patient ID whose appointments should be deleted
+     */
+    public void deleteAllByPatientId(String patientId) {
+        if (patientId == null || patientId.isEmpty()) {
+            System.err.println("Cannot delete appointments: patient ID is null or empty.");
+            return;
+        }
+        
+        // Count how many will be removed
+        int removedCount = 0;
+        for (Appointment a : appointments) {
+            if (patientId.equals(a.getPatientId())) {
+                removedCount++;
+            }
+        }
+        
+        // Remove all appointments matching the patient ID
+        appointments.removeIf(appointment -> patientId.equals(appointment.getPatientId()));
+        
+        // Save updated list to CSV
+        saveAll();
+        
+        System.out.println("Deleted " + removedCount + " appointment(s) for patient " + patientId);
+    }
 
     public void saveAll() {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(csvPath))) {
