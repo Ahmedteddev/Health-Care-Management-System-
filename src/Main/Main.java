@@ -27,10 +27,8 @@ public class Main {
                 AppointmentRepository ar =
                         new AppointmentRepository("src/data/appointments.csv");
 
-                // Note: FacilityRepository is available but not used in GP Dashboard
-                // Uncomment if needed:
-                // FacilityRepository fr =
-                //         new FacilityRepository("src/data/facilities.csv");
+                FacilityRepository fr =
+                        new FacilityRepository("src/data/facilities.csv");
 
                 // Note: PrescriptionRepository and ReferralManager are available
                 // but not used in the GP Dashboard. Uncomment if needed:
@@ -60,10 +58,7 @@ public class Main {
                 GPDashboard dashboard = new GPDashboard(clinician);
 
                 // Create GP Controller to handle interactions
-                GPController gpController = new GPController(dashboard, ar, pr);
-
-                // Load appointments for this clinician
-                gpController.loadAppointments();
+                GPController gpController = new GPController(dashboard, ar, pr, cr, fr);
 
                 // Show the dashboard
                 dashboard.setVisible(true);
