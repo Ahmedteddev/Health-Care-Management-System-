@@ -1,5 +1,6 @@
 package model;
 
+import util.CsvUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -278,7 +279,7 @@ public class PatientRepository {
     /**
      * Saves all patients to the CSV file.
      */
-    private void saveAll() {
+    public void saveAll() {
         try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(csvPath))) {
             // Write header
             bw.write("patient_id,first_name,last_name,date_of_birth,nhs_number,gender,phone_number,email,address,postcode,emergency_contact_name,emergency_contact_phone,registration_date,gp_surgery_id");

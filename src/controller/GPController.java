@@ -2,6 +2,7 @@ package controller;
 
 import model.*;
 import repository.ReferralRepository;
+import repository.StaffRepository;
 import view.*;
 import javax.swing.*;
 import java.awt.*;
@@ -18,8 +19,13 @@ public class GPController {
     private final FacilityRepository facilityRepository;
     private final PrescriptionRepository prescriptionRepository;
     private final ReferralRepository referralRepository;
+    private final StaffRepository staffRepository;
     private final Clinician clinician;
     private MedicalRecordController medicalRecordController;
+    private StaffManagementPanel staffManagementPanel;
+    private PatientManagementPanel patientManagementPanel;
+    private StaffManagementController staffManagementController;
+    private PatientManagementController patientManagementController;
     
     public GPController(GPDashboard mainView,
                        AppointmentRepository appointmentRepository,
@@ -27,7 +33,8 @@ public class GPController {
                        ClinicianRepository clinicianRepository,
                        FacilityRepository facilityRepository,
                        PrescriptionRepository prescriptionRepository,
-                       ReferralRepository referralRepository) {
+                       ReferralRepository referralRepository,
+                       StaffRepository staffRepository) {
         this.mainView = mainView;
         this.appointmentRepository = appointmentRepository;
         this.patientRepository = patientRepository;
@@ -35,22 +42,29 @@ public class GPController {
         this.facilityRepository = facilityRepository;
         this.prescriptionRepository = prescriptionRepository;
         this.referralRepository = referralRepository;
+        this.staffRepository = staffRepository;
         this.clinician = mainView.getClinician();
         
         this.dashboardPanel = new DashboardPanel();
         this.appointmentPanel = new AppointmentPanel();
         this.medicalRecordPanel = new MedicalRecordPanel();
+        this.staffManagementPanel = new StaffManagementPanel();
+        this.patientManagementPanel = new PatientManagementPanel();
         
         setupNavigation();
         setupDashboard();
         setupAppointments();
         setupMedicalRecords();
+        setupStaffManagement();
+        setupPatientManagement();
     }
     
     private void setupNavigation() {
         mainView.addCard("Dashboard", dashboardPanel);
         mainView.addCard("Appointments", appointmentPanel);
         mainView.addCard("Medical Records", medicalRecordPanel);
+        mainView.addCard("Manage Staff", staffManagementPanel);
+        mainView.addCard("Manage Patients", patientManagementPanel);
         
         mainView.getDashboardButton().addActionListener(e -> {
             mainView.showCard("Dashboard");
@@ -62,6 +76,20 @@ public class GPController {
         });
         mainView.getMedicalRecordsButton().addActionListener(e -> {
             mainView.showCard("Medical Records");
+        });
+        mainView.getManageStaffButton().addActionListener(e -> {
+            mainView.showCard("Manage Staff");
+            // Refresh staff table when navigating to this panel
+            if (staffManagementController != null) {
+                staffManagementController.loadStaffTable();
+            }
+        });
+        mainView.getManagePatientsButton().addActionListener(e -> {
+            mainView.showCard("Manage Patients");
+            // Refresh patient table when navigating to this panel
+            if (patientManagementController != null) {
+                patientManagementController.loadPatients();
+            }
         });
         
         mainView.showCard("Dashboard");
@@ -111,6 +139,22 @@ public class GPController {
             facilityRepository,
             referralRepository,
             clinician
+        );
+    }
+    
+    private void setupStaffManagement() {
+        // Create staff management controller
+        staffManagementController = new StaffManagementController(
+            staffManagementPanel,
+            staffRepository
+        );
+    }
+    
+    private void setupPatientManagement() {
+        // Create patient management controller
+        patientManagementController = new PatientManagementController(
+            patientManagementPanel,
+            patientRepository
         );
     }
     

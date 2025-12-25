@@ -12,6 +12,8 @@ public class GPDashboard extends JFrame {
     private JButton dashboardButton;
     private JButton appointmentsButton;
     private JButton medicalRecordsButton;
+    private JButton manageStaffButton;
+    private JButton managePatientsButton;
     
     public GPDashboard(Clinician clinician) {
         this.clinician = clinician;
@@ -31,6 +33,8 @@ public class GPDashboard extends JFrame {
         dashboardButton = new JButton("Dashboard");
         appointmentsButton = new JButton("Appointments");
         medicalRecordsButton = new JButton("Medical Records");
+        manageStaffButton = new JButton("Manage Staff");
+        managePatientsButton = new JButton("Manage Patients");
     }
     
     private void setupLayout() {
@@ -89,16 +93,24 @@ public class GPDashboard extends JFrame {
         dashboardButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         appointmentsButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         medicalRecordsButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        manageStaffButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        managePatientsButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         dashboardButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         appointmentsButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         medicalRecordsButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        manageStaffButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        managePatientsButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         
         sidebarPanel.add(dashboardButton);
         sidebarPanel.add(Box.createVerticalStrut(10));
         sidebarPanel.add(appointmentsButton);
         sidebarPanel.add(Box.createVerticalStrut(10));
         sidebarPanel.add(medicalRecordsButton);
+        sidebarPanel.add(Box.createVerticalStrut(10));
+        sidebarPanel.add(manageStaffButton);
+        sidebarPanel.add(Box.createVerticalStrut(10));
+        sidebarPanel.add(managePatientsButton);
         sidebarPanel.add(Box.createVerticalGlue());
         
         return sidebarPanel;
@@ -122,6 +134,14 @@ public class GPDashboard extends JFrame {
     
     public JButton getMedicalRecordsButton() {
         return medicalRecordsButton;
+    }
+    
+    public JButton getManageStaffButton() {
+        return manageStaffButton;
+    }
+    
+    public JButton getManagePatientsButton() {
+        return managePatientsButton;
     }
     
     public Clinician getClinician() {

@@ -9,7 +9,8 @@ public class PatientManagementPanel extends JPanel {
     
     private JTable patientTable;
     private PatientTableModel tableModel;
-    private JButton addPatientButton;
+    private JButton registerPatientButton;
+    private JButton editPatientButton;
     private JButton deletePatientButton;
     
     // Table column names
@@ -28,8 +29,11 @@ public class PatientManagementPanel extends JPanel {
         patientTable.setRowHeight(25);
         patientTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         
-        addPatientButton = new JButton("Add Patient");
-        deletePatientButton = new JButton("Delete Patient");
+        registerPatientButton = new JButton("Register New");
+        editPatientButton = new JButton("Edit");
+        deletePatientButton = new JButton("Delete");
+        
+        editPatientButton.setEnabled(false);
         deletePatientButton.setEnabled(false);
     }
     
@@ -43,7 +47,8 @@ public class PatientManagementPanel extends JPanel {
         
         // Button panel
         JPanel buttonPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 5));
-        buttonPanel.add(addPatientButton);
+        buttonPanel.add(registerPatientButton);
+        buttonPanel.add(editPatientButton);
         buttonPanel.add(deletePatientButton);
         add(buttonPanel, java.awt.BorderLayout.SOUTH);
     }
@@ -138,8 +143,8 @@ public class PatientManagementPanel extends JPanel {
         
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex) {
-            // ID column (0) is not editable
-            return columnIndex != 0;
+            // Make all cells non-editable (disable inline editing)
+            return false;
         }
         
         public Patient getPatientAt(int rowIndex) {
@@ -179,6 +184,11 @@ public class PatientManagementPanel extends JPanel {
         return null;
     }
     
+    public String getSelectedPatientId() {
+        Patient patient = getSelectedPatient();
+        return patient != null ? patient.getPatientId() : null;
+    }
+    
     public void addPatient(Patient patient) {
         tableModel.addPatient(patient);
     }
@@ -195,16 +205,21 @@ public class PatientManagementPanel extends JPanel {
     }
     
     // Button getters
-    public JButton getAddPatientButton() {
-        return addPatientButton;
+    public JButton getRegisterPatientButton() {
+        return registerPatientButton;
+    }
+    
+    public JButton getEditPatientButton() {
+        return editPatientButton;
     }
     
     public JButton getDeletePatientButton() {
         return deletePatientButton;
     }
     
-    // Enable/disable delete button
-    public void setDeleteButtonEnabled(boolean enabled) {
+    // Enable/disable edit and delete buttons
+    public void setEditDeleteButtonsEnabled(boolean enabled) {
+        editPatientButton.setEnabled(enabled);
         deletePatientButton.setEnabled(enabled);
     }
     

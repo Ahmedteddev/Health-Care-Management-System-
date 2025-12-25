@@ -12,25 +12,41 @@ import java.util.List;
  * Repository class for managing Staff and Clinician entities.
  * Dual loader: loads both staff.csv and clinicians.csv.
  * Maintains separate lists since staff IDs (ST) and clinician IDs (C) are different.
+ * Implements Singleton pattern.
  */
 public class StaffRepository {
     
+    private static StaffRepository instance;
     private final List<Staff> staffList = new ArrayList<>();
     private final List<Clinician> clinicianList = new ArrayList<>();
     private final String staffCsvPath;
     private final String clinicianCsvPath;
     
     /**
-     * Constructor that initializes the repository and loads both CSV files.
-     * 
-     * @param staffCsvPath The path to the staff.csv file
-     * @param clinicianCsvPath The path to the clinicians.csv file
+     * Public constructor for backward compatibility.
+     * Creates a new instance. If instance is null, sets it as the singleton instance.
+     * Note: For new code, use getInstance() instead for proper singleton pattern.
      */
     public StaffRepository(String staffCsvPath, String clinicianCsvPath) {
         this.staffCsvPath = staffCsvPath;
         this.clinicianCsvPath = clinicianCsvPath;
         loadStaff();
         loadClinicians();
+        // If instance is null, set it (allows singleton pattern to work)
+        if (instance == null) {
+            instance = this;
+        }
+    }
+    
+    /**
+     * Public static method to get the singleton instance.
+     * Implements lazy initialization.
+     */
+    public static synchronized StaffRepository getInstance(String staffCsvPath, String clinicianCsvPath) {
+        if (instance == null) {
+            instance = new StaffRepository(staffCsvPath, clinicianCsvPath);
+        }
+        return instance;
     }
     
     /**
@@ -342,6 +358,31 @@ public class StaffRepository {
     }
     
     /**
+     * Updates an existing staff member in the repository and saves to CSV.
+     * 
+     * @param staff The updated Staff object
+     */
+    public void updateStaff(Staff staff) {
+        if (staff == null) {
+            System.err.println("Cannot update null staff.");
+            return;
+        }
+        
+        // Find and update the staff in the list
+        for (int i = 0; i < staffList.size(); i++) {
+            if (staffList.get(i).getStaffId().equals(staff.getStaffId())) {
+                staffList.set(i, staff);
+                // Save all to CSV
+                saveAllStaff();
+                System.out.println("Successfully updated staff " + staff.getStaffId());
+                return;
+            }
+        }
+        
+        System.err.println("Staff with ID " + staff.getStaffId() + " not found for update.");
+    }
+    
+    /**
      * Removes a staff member from the repository.
      * Note: This does not remove from CSV file (would require rewriting the entire file).
      * 
@@ -350,7 +391,54 @@ public class StaffRepository {
     public void removeStaff(Staff staff) {
         if (staff != null) {
             staffList.remove(staff);
+            // Save updated list to CSV
+            saveAllStaff();
         }
+    }
+    
+    /**
+     * Saves all staff to the CSV file.
+     */
+    private void saveAllStaff() {
+        try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(staffCsvPath))) {
+            // Write header
+            bw.write("staff_id,first_name,last_name,role,department,facility_id,phone_number,email,employment_status,start_date,line_manager,access_level");
+            bw.newLine();
+            
+            // Write all staff
+            for (Staff staff : staffList) {
+                bw.write(escapeCsv(staff.getStaffId()) + ",");
+                bw.write(escapeCsv(staff.getFirstName()) + ",");
+                bw.write(escapeCsv(staff.getLastName()) + ",");
+                bw.write(escapeCsv(staff.getRole()) + ",");
+                bw.write(escapeCsv(staff.getDepartment()) + ",");
+                bw.write(escapeCsv(staff.getFacilityId()) + ",");
+                bw.write(escapeCsv(staff.getPhoneNumber()) + ",");
+                bw.write(escapeCsv(staff.getEmail()) + ",");
+                bw.write(escapeCsv(staff.getEmploymentStatus()) + ",");
+                bw.write(escapeCsv(staff.getStartDate()) + ",");
+                bw.write(escapeCsv(staff.getLineManager()) + ",");
+                bw.write(escapeCsv(staff.getAccessLevel()));
+                bw.newLine();
+            }
+            
+        } catch (java.io.IOException ex) {
+            System.err.println("Failed to save staff to CSV file: " + staffCsvPath);
+            System.err.println("Error: " + ex.getMessage());
+        }
+    }
+    
+    /**
+     * Escapes CSV values that contain commas or quotes.
+     */
+    private String escapeCsv(String value) {
+        if (value == null) {
+            return "";
+        }
+        if (value.contains(",") || value.contains("\"")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
     
     /**
