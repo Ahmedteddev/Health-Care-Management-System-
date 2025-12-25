@@ -71,8 +71,16 @@ public class PatientRepository {
     // LOAD PATIENTS FROM CSV (all 14 fields)
     // ============================================================
     private void load() {
+        final int EXPECTED_COLUMNS = 14;
         try {
             for (String[] row : CsvUtils.readCsv(csvPath)) {
+                // Data integrity check: skip rows with insufficient columns
+                if (row.length < EXPECTED_COLUMNS) {
+                    System.err.println("Warning: Skipping invalid patient row with insufficient columns (" + 
+                                     row.length + " < " + EXPECTED_COLUMNS + "): " + 
+                                     String.join(",", row));
+                    continue;
+                }
 
                 Patient p = new Patient(
                         row[0],   // patient_id
@@ -96,6 +104,9 @@ public class PatientRepository {
 
         } catch (IOException ex) {
             System.err.println("Failed to load patients: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.err.println("Unexpected error while loading patients: " + ex.getMessage());
+            ex.printStackTrace();
         }
     }
 

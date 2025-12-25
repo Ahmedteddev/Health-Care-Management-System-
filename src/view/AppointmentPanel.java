@@ -61,9 +61,20 @@ public class AppointmentPanel extends JPanel {
         setLayout(new BorderLayout(15, 15));
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
-        // Search Header (North)
+        // Top panel with heading and search
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        
+        // Heading
+        JPanel headingPanel = createHeadingPanel();
+        topPanel.add(headingPanel);
+        topPanel.add(Box.createVerticalStrut(10));
+        
+        // Search Header
         JPanel searchPanel = createSearchPanel();
-        add(searchPanel, BorderLayout.NORTH);
+        topPanel.add(searchPanel);
+        
+        add(topPanel, BorderLayout.NORTH);
         
         // Central Table (Center)
         JScrollPane tableScrollPane = new JScrollPane(appointmentsTable);
@@ -73,6 +84,14 @@ public class AppointmentPanel extends JPanel {
         // Action Footer (South)
         JPanel actionPanel = createActionPanel();
         add(actionPanel, BorderLayout.SOUTH);
+    }
+    
+    private JPanel createHeadingPanel() {
+        JPanel headingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
+        JLabel headingLabel = new JLabel("Appointment Management");
+        headingLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+        headingPanel.add(headingLabel);
+        return headingPanel;
     }
     
     private JPanel createSearchPanel() {
@@ -89,8 +108,7 @@ public class AppointmentPanel extends JPanel {
     }
     
     private JPanel createActionPanel() {
-        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        actionPanel.setBorder(BorderFactory.createTitledBorder("Actions"));
+        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
         
         actionPanel.add(bookNewButton);
         actionPanel.add(rescheduleButton);

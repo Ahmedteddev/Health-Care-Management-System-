@@ -106,9 +106,20 @@ public class MedicalRecordPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
-        // Top: Search panel
+        // Top panel with heading and search
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        
+        // Heading
+        JPanel headingPanel = createHeadingPanel();
+        topPanel.add(headingPanel);
+        topPanel.add(Box.createVerticalStrut(10));
+        
+        // Search panel
         JPanel searchPanel = createSearchPanel();
-        add(searchPanel, BorderLayout.NORTH);
+        topPanel.add(searchPanel);
+        
+        add(topPanel, BorderLayout.NORTH);
         
         // Middle: Summary panel
         JPanel summaryPanel = createSummaryPanel();
@@ -135,6 +146,14 @@ public class MedicalRecordPanel extends JPanel {
         bottomPanel.add(actionPanel, BorderLayout.SOUTH);
         
         add(bottomPanel, BorderLayout.SOUTH);
+    }
+    
+    private JPanel createHeadingPanel() {
+        JPanel headingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
+        JLabel headingLabel = new JLabel("Patients Medical Record");
+        headingLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+        headingPanel.add(headingLabel);
+        return headingPanel;
     }
     
     private JPanel createSearchPanel() {
