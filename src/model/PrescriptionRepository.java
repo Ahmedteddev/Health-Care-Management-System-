@@ -151,6 +151,16 @@ public class PrescriptionRepository {
     
     /**
      * Deletes all prescriptions for a specific patient.
+     * Alias method to match user's method name requirement.
+     * 
+     * @param patientId The patient ID whose prescriptions should be deleted
+     */
+    public void deleteByPatientId(String patientId) {
+        deleteAllByPatientId(patientId);
+    }
+    
+    /**
+     * Deletes all prescriptions for a specific patient.
      * 
      * @param patientId The patient ID whose prescriptions should be deleted
      */

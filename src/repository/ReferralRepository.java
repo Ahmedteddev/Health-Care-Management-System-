@@ -202,5 +202,95 @@ public class ReferralRepository {
         
         return String.format("R%03d", max + 1);
     }
+    
+    /**
+     * Deletes all referrals for a specific patient (for referential integrity).
+     * Alias for deleteAllByPatientId to match user's method name requirement.
+     * 
+     * @param patientId The patient ID whose referrals should be deleted
+     */
+    public void deleteByPatientId(String patientId) {
+        deleteAllByPatientId(patientId);
+    }
+    
+    /**
+     * Deletes all referrals for a specific patient.
+     * 
+     * @param patientId The patient ID whose referrals should be deleted
+     */
+    public void deleteAllByPatientId(String patientId) {
+        if (patientId == null || patientId.isEmpty()) {
+            System.err.println("Cannot delete referrals: patient ID is null or empty.");
+            return;
+        }
+        
+        // Count how many will be removed
+        int removedCount = 0;
+        for (Referral r : referrals) {
+            if (patientId.equals(r.getPatientId())) {
+                removedCount++;
+            }
+        }
+        
+        // Remove all referrals matching the patient ID
+        referrals.removeIf(referral -> patientId.equals(referral.getPatientId()));
+        
+        // Save updated list to CSV
+        saveAll();
+        
+        System.out.println("Deleted " + removedCount + " referral(s) for patient " + patientId);
+    }
+    
+    /**
+     * Saves all referrals to the CSV file.
+     */
+    private void saveAll() {
+        try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(csvPath))) {
+            // Write header
+            bw.write("referral_id,patient_id,referring_clinician_id,referred_to_clinician_id,");
+            bw.write("referring_facility_id,referred_to_facility_id,referral_date,urgency_level,");
+            bw.write("referral_reason,clinical_summary,requested_investigations,status,");
+            bw.write("appointment_id,notes,created_date,last_updated");
+            bw.newLine();
+            
+            // Write all referrals
+            for (Referral r : referrals) {
+                bw.write(escapeCsv(r.getReferralId()) + ",");
+                bw.write(escapeCsv(r.getPatientId()) + ",");
+                bw.write(escapeCsv(r.getReferringClinicianId()) + ",");
+                bw.write(escapeCsv(r.getReferredToClinicianId()) + ",");
+                bw.write(escapeCsv(r.getReferringFacilityId()) + ",");
+                bw.write(escapeCsv(r.getReferredToFacilityId()) + ",");
+                bw.write(escapeCsv(r.getReferralDate()) + ",");
+                bw.write(escapeCsv(r.getUrgencyLevel()) + ",");
+                bw.write(escapeCsv(r.getReferralReason()) + ",");
+                bw.write(escapeCsv(r.getClinicalSummary()) + ",");
+                bw.write(escapeCsv(r.getRequestedInvestigations()) + ",");
+                bw.write(escapeCsv(r.getStatus()) + ",");
+                bw.write(escapeCsv(r.getAppointmentId()) + ",");
+                bw.write(escapeCsv(r.getNotes()) + ",");
+                bw.write(escapeCsv(r.getCreatedDate()) + ",");
+                bw.write(escapeCsv(r.getLastUpdated()));
+                bw.newLine();
+            }
+            
+        } catch (java.io.IOException ex) {
+            System.err.println("Failed to save referrals to CSV file: " + csvPath);
+            System.err.println("Error: " + ex.getMessage());
+        }
+    }
+    
+    /**
+     * Escapes CSV values that contain commas or quotes.
+     */
+    private String escapeCsv(String value) {
+        if (value == null) {
+            return "";
+        }
+        if (value.contains(",") || value.contains("\"")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
 }
 

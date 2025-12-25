@@ -7,15 +7,36 @@ import javax.swing.JOptionPane;
 
 public class PatientRepository {
 
+    private static PatientRepository instance;
     private final List<Patient> patients = new ArrayList<>();
     private final String csvPath;
     private MedicalRecordRepository medicalRecordRepository;
     private AppointmentRepository appointmentRepository;
     private PrescriptionRepository prescriptionRepository;
 
+    /**
+     * Public constructor for backward compatibility.
+     * Creates a new instance. If instance is null, sets it as the singleton instance.
+     * Note: For new code, use getInstance() instead for proper singleton pattern.
+     */
     public PatientRepository(String csvPath) {
         this.csvPath = csvPath;
         load();
+        // If instance is null, set it (allows singleton pattern to work)
+        if (instance == null) {
+            instance = this;
+        }
+    }
+    
+    /**
+     * Public static method to get the singleton instance.
+     * Implements lazy initialization.
+     */
+    public static synchronized PatientRepository getInstance(String csvPath) {
+        if (instance == null) {
+            instance = new PatientRepository(csvPath);
+        }
+        return instance;
     }
     
     /**
@@ -153,6 +174,32 @@ public class PatientRepository {
         }
         return null;
     }
+    
+    /**
+     * Updates an existing patient in the repository and saves to CSV.
+     * 
+     * @param patient The updated Patient object
+     */
+    public void updatePatient(Patient patient) {
+        if (patient == null) {
+            System.err.println("Cannot update null patient.");
+            return;
+        }
+        
+        // Find and update the patient in the list
+        for (int i = 0; i < patients.size(); i++) {
+            if (patients.get(i).getId().equals(patient.getId())) {
+                patients.set(i, patient);
+                // Save all to CSV
+                saveAll();
+                System.out.println("Successfully updated patient " + patient.getId());
+                return;
+            }
+        }
+        
+        System.err.println("Patient with ID " + patient.getId() + " not found for update.");
+    }
+    
     
     /**
      * Deletes a patient and all related data (cascading deletion).

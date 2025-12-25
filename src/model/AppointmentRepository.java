@@ -100,6 +100,16 @@ public class AppointmentRepository {
     
     /**
      * Deletes all appointments for a specific patient.
+     * Alias method to match user's method name requirement.
+     * 
+     * @param patientId The patient ID whose appointments should be deleted
+     */
+    public void deleteByPatientId(String patientId) {
+        deleteAllByPatientId(patientId);
+    }
+    
+    /**
+     * Deletes all appointments for a specific patient.
      * 
      * @param patientId The patient ID whose appointments should be deleted
      */
