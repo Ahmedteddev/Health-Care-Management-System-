@@ -1,6 +1,7 @@
 package controller;
 
 import model.*;
+import repository.ReferralRepository;
 import view.*;
 import javax.swing.*;
 import java.awt.*;
@@ -16,6 +17,7 @@ public class GPController {
     private final ClinicianRepository clinicianRepository;
     private final FacilityRepository facilityRepository;
     private final PrescriptionRepository prescriptionRepository;
+    private final ReferralRepository referralRepository;
     private final Clinician clinician;
     private MedicalRecordController medicalRecordController;
     
@@ -24,13 +26,15 @@ public class GPController {
                        PatientRepository patientRepository,
                        ClinicianRepository clinicianRepository,
                        FacilityRepository facilityRepository,
-                       PrescriptionRepository prescriptionRepository) {
+                       PrescriptionRepository prescriptionRepository,
+                       ReferralRepository referralRepository) {
         this.mainView = mainView;
         this.appointmentRepository = appointmentRepository;
         this.patientRepository = patientRepository;
         this.clinicianRepository = clinicianRepository;
         this.facilityRepository = facilityRepository;
         this.prescriptionRepository = prescriptionRepository;
+        this.referralRepository = referralRepository;
         this.clinician = mainView.getClinician();
         
         this.dashboardPanel = new DashboardPanel();
@@ -104,6 +108,8 @@ public class GPController {
             appointmentRepository,
             prescriptionRepository,
             clinicianRepository,
+            facilityRepository,
+            referralRepository,
             clinician
         );
     }

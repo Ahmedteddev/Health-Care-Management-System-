@@ -24,9 +24,12 @@ public class MedicalRecordPanel extends JPanel {
     private DefaultTableModel encountersTableModel;
     private JTable medicationsTable;
     private DefaultTableModel medicationsTableModel;
+    private JTable referralsTable;
+    private DefaultTableModel referralsTableModel;
     
-    // Action button
+    // Action buttons
     private JButton issuePrescriptionButton;
+    private JButton generateReferralButton;
     
     // Table column names
     private static final String[] ENCOUNTERS_COLUMNS = {
@@ -35,6 +38,10 @@ public class MedicalRecordPanel extends JPanel {
     
     private static final String[] MEDICATIONS_COLUMNS = {
         "Medication Name", "Dosage", "Status"
+    };
+    
+    private static final String[] REFERRALS_COLUMNS = {
+        "Date", "Specialty", "Facility", "Status"
     };
     
     public MedicalRecordPanel() {
@@ -75,12 +82,24 @@ public class MedicalRecordPanel extends JPanel {
         medicationsTable = new JTable(medicationsTableModel);
         medicationsTable.setRowHeight(25);
         
+        // Referrals table
+        referralsTableModel = new DefaultTableModel(REFERRALS_COLUMNS, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        referralsTable = new JTable(referralsTableModel);
+        referralsTable.setRowHeight(25);
+        
         // Tabbed pane
         tabbedPane = new JTabbedPane();
         
-        // Action button
+        // Action buttons
         issuePrescriptionButton = new JButton("Issue New Prescription");
         issuePrescriptionButton.setEnabled(false);
+        generateReferralButton = new JButton("Generate New Referral");
+        generateReferralButton.setEnabled(false);
     }
     
     private void setupLayout() {
@@ -101,15 +120,18 @@ public class MedicalRecordPanel extends JPanel {
         // Tabbed pane with tables
         JScrollPane encountersScrollPane = new JScrollPane(encountersTable);
         JScrollPane medicationsScrollPane = new JScrollPane(medicationsTable);
+        JScrollPane referralsScrollPane = new JScrollPane(referralsTable);
         
         tabbedPane.addTab("Encounters", encountersScrollPane);
         tabbedPane.addTab("Medications", medicationsScrollPane);
+        tabbedPane.addTab("Referrals", referralsScrollPane);
         
         bottomPanel.add(tabbedPane, BorderLayout.CENTER);
         
         // Action button panel
-        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
         actionPanel.add(issuePrescriptionButton);
+        actionPanel.add(generateReferralButton);
         bottomPanel.add(actionPanel, BorderLayout.SOUTH);
         
         add(bottomPanel, BorderLayout.SOUTH);
@@ -223,6 +245,11 @@ public class MedicalRecordPanel extends JPanel {
         issuePrescriptionButton.setEnabled(enabled);
     }
     
+    // Enable/disable generate referral button
+    public void setGenerateReferralEnabled(boolean enabled) {
+        generateReferralButton.setEnabled(enabled);
+    }
+    
     // Get current patient ID (for prescription dialog)
     private String currentPatientId = null;
     
@@ -232,6 +259,20 @@ public class MedicalRecordPanel extends JPanel {
     
     public String getCurrentPatientId() {
         return currentPatientId;
+    }
+    
+    // Methods for referrals table
+    public void clearReferrals() {
+        referralsTableModel.setRowCount(0);
+    }
+    
+    public void addReferralRow(String date, String specialty, String facility, String status) {
+        referralsTableModel.addRow(new Object[]{date, specialty, facility, status});
+    }
+    
+    // Button getters
+    public JButton getGenerateReferralButton() {
+        return generateReferralButton;
     }
 }
 

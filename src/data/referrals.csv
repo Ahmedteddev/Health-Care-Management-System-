@@ -10,3 +10,4 @@ R008,P002,C009,C011,S001,H001,2025-09-14,Non-urgent,Post-vaccination care,"35-ye
 R009,P010,C002,C005,S001,H001,2025-09-13,Routine,Diabetes complications screening,"38-year-old female with Type 2 diabetes requiring annual cardiovascular risk assessment. HbA1c slightly elevated.",Diabetic retinal screening|Cardiovascular assessment,Pending,,Annual diabetes review referral,2025-09-13,2025-09-13
 R010,P006,C004,C006,S003,H001,2025-09-12,Urgent,Memory problems,"47-year-old female reporting significant memory issues and confusion. Family concerned about early onset dementia.",Cognitive assessment|MRI Brain,Pending,,Early intervention referral requested,2025-09-12,2025-09-12,,,,,,,
 R011,R005,C003,C004,S001,S002,23/11/2025,Urgent,Chest Pain,Very very Critical,ECG,Pending,A013,Nil,23/11/2025,23/11/2025
+R012,P001,C001,,S001,,2025-12-25,Urgent,Referral for General Surgery,theres a cucmber in his AH,General Surgery,Pending,,,2025-12-25,2025-12-25

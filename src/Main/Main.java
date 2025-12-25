@@ -1,6 +1,7 @@
 package Main;
 
 import model.*;
+import repository.ReferralRepository;
 import view.GPDashboard;
 import controller.GPController;
 import javax.swing.SwingUtilities;
@@ -32,9 +33,9 @@ public class Main {
 
                 PrescriptionRepository pResR =
                         new PrescriptionRepository("src/data/prescriptions.csv");
-                // ReferralManager rm = ReferralManager.getInstance(
-                //         "src/data/referrals.csv", pr, cr, fr,
-                //         "src/data/referrals_output.txt");
+                
+                // ReferralRepository (Singleton)
+                ReferralRepository refRepo = ReferralRepository.getInstance("src/data/referrals.csv");
 
                 // ================================
                 // GP DASHBOARD SETUP
@@ -56,7 +57,7 @@ public class Main {
                 GPDashboard dashboard = new GPDashboard(clinician);
 
                 // Create GP Controller to handle interactions
-                GPController gpController = new GPController(dashboard, ar, pr, cr, fr, pResR);
+                GPController gpController = new GPController(dashboard, ar, pr, cr, fr, pResR, refRepo);
 
                 // Show the dashboard
                 dashboard.setVisible(true);
