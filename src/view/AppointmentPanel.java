@@ -40,7 +40,7 @@ public class AppointmentPanel extends JPanel {
         appointmentsTable.setRowHeight(25);
         appointmentsTable.getTableHeader().setReorderingAllowed(false);
         
-        // Search components
+        // Search components (simple master list search)
         searchField = new JTextField(20);
         filterComboBox = new JComboBox<>(new String[]{"Patient ID", "Patient Name", "Clinician ID", "Clinician Name"});
         searchButton = new JButton("Search");

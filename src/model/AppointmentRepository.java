@@ -7,12 +7,33 @@ import java.util.List;
 
 public class AppointmentRepository {
 
+    private static AppointmentRepository instance;
     private final List<Appointment> appointments = new ArrayList<>();
     private final String csvPath;
 
+    /**
+     * Public constructor for backward compatibility.
+     * Creates a new instance. If instance is null, sets it as the singleton instance.
+     * Note: For new code, use getInstance() instead for proper singleton pattern.
+     */
     public AppointmentRepository(String csvPath) {
         this.csvPath = csvPath;
         load();
+        // If instance is null, set it (allows singleton pattern to work)
+        if (instance == null) {
+            instance = this;
+        }
+    }
+    
+    /**
+     * Public static method to get the singleton instance.
+     * Implements lazy initialization.
+     */
+    public static synchronized AppointmentRepository getInstance(String csvPath) {
+        if (instance == null) {
+            instance = new AppointmentRepository(csvPath);
+        }
+        return instance;
     }
 
     private void load() {
@@ -64,13 +85,33 @@ public class AppointmentRepository {
     }
 
     public void update(Appointment updated) {
+        updateAppointment(updated);
+    }
+    
+    /**
+     * Updates an appointment in the repository and saves to CSV.
+     * Searches the CSV for the Appointment ID and replaces the line with new data.
+     * 
+     * @param updated The updated Appointment object
+     */
+    public void updateAppointment(Appointment updated) {
+        if (updated == null) {
+            System.err.println("Cannot update null appointment.");
+            return;
+        }
+        
+        // Find and update the appointment in the list
         for (int i = 0; i < appointments.size(); i++) {
             if (appointments.get(i).getId().equals(updated.getId())) {
                 appointments.set(i, updated);
+                // Save all to CSV (overwrites the entire file)
                 saveAll();
+                System.out.println("Successfully updated appointment " + updated.getId());
                 return;
             }
         }
+        
+        System.err.println("Appointment with ID " + updated.getId() + " not found for update.");
     }
 
     public void delete(String appointmentId) {
@@ -146,23 +187,36 @@ public class AppointmentRepository {
             
             // Write all appointments
             for (Appointment a : appointments) {
-                bw.write(a.getId() + ",");
-                bw.write(a.getPatientId() + ",");
-                bw.write(a.getClinicianId() + ",");
-                bw.write(a.getFacilityId() + ",");
-                bw.write(a.getAppointmentDate() + ",");
-                bw.write(a.getAppointmentTime() + ",");
-                bw.write(a.getDurationMinutes() + ",");
-                bw.write(a.getAppointmentType() + ",");
-                bw.write(a.getStatus() + ",");
-                bw.write(a.getReasonForVisit() + ",");
-                bw.write(a.getNotes() + ",");
-                bw.write(a.getCreatedDate() + ",");
-                bw.write(a.getLastModified());
+                bw.write(escapeCsv(a.getId()) + ",");
+                bw.write(escapeCsv(a.getPatientId()) + ",");
+                bw.write(escapeCsv(a.getClinicianId()) + ",");
+                bw.write(escapeCsv(a.getFacilityId()) + ",");
+                bw.write(escapeCsv(a.getAppointmentDate()) + ",");
+                bw.write(escapeCsv(a.getAppointmentTime()) + ",");
+                bw.write(escapeCsv(a.getDurationMinutes()) + ",");
+                bw.write(escapeCsv(a.getAppointmentType()) + ",");
+                bw.write(escapeCsv(a.getStatus()) + ",");
+                bw.write(escapeCsv(a.getReasonForVisit()) + ",");
+                bw.write(escapeCsv(a.getNotes()) + ",");
+                bw.write(escapeCsv(a.getCreatedDate()) + ",");
+                bw.write(escapeCsv(a.getLastModified()));
                 bw.newLine();
             }
         } catch (IOException ex) {
             System.err.println("Failed to save appointments: " + ex.getMessage());
         }
+    }
+    
+    /**
+     * Escapes CSV values that contain commas or quotes.
+     */
+    private String escapeCsv(String value) {
+        if (value == null) {
+            return "";
+        }
+        if (value.contains(",") || value.contains("\"")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 }

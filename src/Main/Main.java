@@ -4,7 +4,8 @@ import model.*;
 import repository.ReferralRepository;
 import repository.StaffRepository;
 import view.GPDashboard;
-import controller.GPController;
+import controller.DashboardController;
+import controller.AppointmentController;
 import javax.swing.SwingUtilities;
 
 /**
@@ -60,8 +61,19 @@ public class Main {
                 // Create GP Dashboard
                 GPDashboard dashboard = new GPDashboard(clinician);
 
-                // Create GP Controller to handle interactions
-                GPController gpController = new GPController(dashboard, ar, pr, cr, fr, pResR, refRepo, staffRepo);
+                // Create Dashboard Controller to handle sidebar navigation
+                DashboardController dashboardController = new DashboardController(
+                    dashboard, ar, pr, cr, fr, pResR, refRepo, staffRepo
+                );
+
+                // Create Appointment Controller to handle appointment-specific logic
+                AppointmentController appointmentController = new AppointmentController(
+                    dashboardController.getAppointmentPanel(),
+                    ar,
+                    pr,
+                    cr,
+                    fr
+                );
 
                 // Show the dashboard
                 dashboard.setVisible(true);
