@@ -3,14 +3,13 @@ package Main;
 import model.*;
 import repository.ReferralRepository;
 import repository.StaffRepository;
-import view.GPDashboard;
-import controller.DashboardController;
-import controller.AppointmentController;
+import view.LoginView;
+import controller.LoginController;
 import javax.swing.SwingUtilities;
 
 /**
  * Main entry point for the Healthcare Management System.
- * Launches the GP Dashboard for clinician access.
+ * Launches the Login screen.
  */
 public class Main {
 
@@ -19,7 +18,7 @@ public class Main {
         SwingUtilities.invokeLater(() -> {
             try {
                 // ================================
-                // REPOSITORIES
+                // REPOSITORIES - Initialize all repositories
                 // ================================
                 PatientRepository pr =
                         new PatientRepository("src/data/patients.csv");
@@ -43,44 +42,27 @@ public class Main {
                 StaffRepository staffRepo = StaffRepository.getInstance("src/data/staff.csv", "src/data/clinicians.csv");
 
                 // ================================
-                // GP DASHBOARD SETUP
+                // LOGIN VIEW SETUP
                 // ================================
-                // Fetch C001 (Dr. David Thompson) from ClinicianRepository
-                // You can change this to any clinician ID or implement login logic
-                Clinician clinician = cr.findById("C001");
+                LoginView loginView = new LoginView();
                 
-                if (clinician == null) {
-                    System.err.println("Error: Clinician C001 not found in repository.");
-                    System.err.println("Available clinicians:");
-                    for (Clinician c : cr.getAll()) {
-                        System.err.println("  - " + c.getClinicianId() + ": " + c.getFullName());
-                    }
-                    return;
-                }
-
-                // Create GP Dashboard
-                GPDashboard dashboard = new GPDashboard(clinician);
-
-                // Create Dashboard Controller to handle sidebar navigation
-                DashboardController dashboardController = new DashboardController(
-                    dashboard, ar, pr, cr, fr, pResR, refRepo, staffRepo
-                );
-
-                // Create Appointment Controller to handle appointment-specific logic
-                AppointmentController appointmentController = new AppointmentController(
-                    dashboardController.getAppointmentPanel(),
-                    ar,
+                // Create Login Controller
+                LoginController loginController = new LoginController(
+                    loginView,
                     pr,
+                    staffRepo,
                     cr,
-                    fr
+                    ar,
+                    pResR,
+                    fr,
+                    refRepo
                 );
-
-                // Show the dashboard
-                dashboard.setVisible(true);
-
+                
+                // Show the login screen
+                loginView.setVisible(true);
+                
                 System.out.println("Healthcare Management System started successfully.");
-                System.out.println("GP Dashboard launched for: " + clinician.getFullName());
-                System.out.println("Specialty: " + clinician.getSpeciality());
+                System.out.println("Login screen launched.");
 
             } catch (Exception ex) {
                 System.err.println("Error starting the application: " + ex.getMessage());

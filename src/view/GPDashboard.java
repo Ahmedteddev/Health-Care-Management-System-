@@ -9,6 +9,7 @@ public class GPDashboard extends JFrame {
     private final Clinician clinician;
     private CardLayout cardLayout;
     private JPanel contentPanel;
+    private JButton logoutButton;
     private JButton dashboardButton;
     private JButton appointmentsButton;
     private JButton medicalRecordsButton;
@@ -30,6 +31,7 @@ public class GPDashboard extends JFrame {
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         
+        logoutButton = new JButton("Logout");
         dashboardButton = new JButton("Dashboard");
         appointmentsButton = new JButton("Appointments");
         medicalRecordsButton = new JButton("Medical Records");
@@ -90,6 +92,7 @@ public class GPDashboard extends JFrame {
         sidebarPanel.setBackground(new Color(220, 220, 220));
         sidebarPanel.setPreferredSize(new Dimension(180, 0));
         
+        // Navigation buttons - set alignment and size
         dashboardButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         appointmentsButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         medicalRecordsButton.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -102,6 +105,21 @@ public class GPDashboard extends JFrame {
         manageStaffButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         managePatientsButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         
+        // Logout button - match style of appointmentsButton
+        logoutButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        logoutButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        logoutButton.setPreferredSize(appointmentsButton.getPreferredSize());
+        logoutButton.setBackground(appointmentsButton.getBackground());
+        logoutButton.setForeground(appointmentsButton.getForeground());
+        logoutButton.setFont(appointmentsButton.getFont());
+        
+        // Add logout button at the top (first button)
+        sidebarPanel.add(logoutButton);
+        sidebarPanel.add(Box.createVerticalStrut(15));
+        sidebarPanel.add(new JSeparator(JSeparator.HORIZONTAL));
+        sidebarPanel.add(Box.createVerticalStrut(10));
+        
+        // Add navigation buttons
         sidebarPanel.add(dashboardButton);
         sidebarPanel.add(Box.createVerticalStrut(10));
         sidebarPanel.add(appointmentsButton);
@@ -122,6 +140,10 @@ public class GPDashboard extends JFrame {
     
     public void showCard(String cardName) {
         cardLayout.show(contentPanel, cardName);
+    }
+    
+    public JButton getLogoutButton() {
+        return logoutButton;
     }
     
     public JButton getDashboardButton() {

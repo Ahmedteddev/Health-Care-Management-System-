@@ -21,6 +21,7 @@ public class DashboardController {
     private final ReferralRepository referralRepository;
     private final StaffRepository staffRepository;
     private final Clinician clinician;
+    private final String userRole;
     private MedicalRecordController medicalRecordController;
     private StaffManagementController staffManagementController;
     private PatientManagementController patientManagementController;
@@ -32,7 +33,8 @@ public class DashboardController {
                               FacilityRepository facilityRepository,
                               PrescriptionRepository prescriptionRepository,
                               ReferralRepository referralRepository,
-                              StaffRepository staffRepository) {
+                              StaffRepository staffRepository,
+                              String role) {
         this.mainView = mainView;
         this.appointmentRepository = appointmentRepository;
         this.patientRepository = patientRepository;
@@ -42,6 +44,7 @@ public class DashboardController {
         this.referralRepository = referralRepository;
         this.staffRepository = staffRepository;
         this.clinician = mainView.getClinician();
+        this.userRole = role;
         
         this.dashboardPanel = new DashboardPanel();
         this.appointmentPanel = new AppointmentPanel();
@@ -54,6 +57,140 @@ public class DashboardController {
         setupMedicalRecords();
         setupStaffManagement();
         setupPatientManagement();
+        setupLogout();
+        
+        // Apply role-based permissions
+        applyPermissions(role);
+    }
+    
+    private void setupLogout() {
+        mainView.getLogoutButton().addActionListener(e -> {
+            int confirm = javax.swing.JOptionPane.showConfirmDialog(
+                mainView,
+                "Are you sure you want to logout?",
+                "Confirm Logout",
+                javax.swing.JOptionPane.YES_NO_OPTION
+            );
+            
+            if (confirm == javax.swing.JOptionPane.YES_OPTION) {
+                // Close current dashboard
+                mainView.dispose();
+                
+                // Return to LoginView
+                view.LoginView loginView = new view.LoginView();
+                controller.LoginController loginController = new controller.LoginController(
+                    loginView,
+                    patientRepository,
+                    staffRepository,
+                    clinicianRepository,
+                    appointmentRepository,
+                    prescriptionRepository,
+                    facilityRepository,
+                    referralRepository
+                );
+                loginView.setVisible(true);
+            }
+        });
+    }
+    
+    /**
+     * Apply role-based permissions to show/hide buttons.
+     * Developer: Show ALL buttons (Super User).
+     * GP / Specialist: Show btnAppointments, btnMedicalRecords. Hide others.
+     * Nurse: Show btnMedicalRecords only. Hide others.
+     * Admin: Show btnStaffManagement, btnPatientManagement. Hide others.
+     * Receptionist: Show btnPatientManagement, btnAppointments. Hide others.
+     */
+    public void applyPermissions(String role) {
+        // Hide all buttons first and clear selections
+        mainView.getDashboardButton().setVisible(false);
+        mainView.getAppointmentsButton().setVisible(false);
+        mainView.getMedicalRecordsButton().setVisible(false);
+        mainView.getManageStaffButton().setVisible(false);
+        mainView.getManagePatientsButton().setVisible(false);
+        
+        // Clear any active selections on hidden buttons
+        clearButtonSelections();
+        
+        // Apply permissions based on role
+        if ("Developer".equalsIgnoreCase(role)) {
+            // Developer: Show ALL buttons (Super User)
+            mainView.getDashboardButton().setVisible(true);
+            mainView.getAppointmentsButton().setVisible(true);
+            mainView.getMedicalRecordsButton().setVisible(true);
+            mainView.getManageStaffButton().setVisible(true);
+            mainView.getManagePatientsButton().setVisible(true);
+        } else if ("GP".equalsIgnoreCase(role) || "Specialist".equalsIgnoreCase(role)) {
+            // GP / Specialist: Show btnAppointments, btnMedicalRecords
+            mainView.getAppointmentsButton().setVisible(true);
+            mainView.getMedicalRecordsButton().setVisible(true);
+        } else if ("Nurse".equalsIgnoreCase(role)) {
+            // Nurse: Show btnMedicalRecords only
+            mainView.getMedicalRecordsButton().setVisible(true);
+        } else if ("Admin".equalsIgnoreCase(role) || role.toLowerCase().contains("admin")) {
+            // Admin: Show btnStaffManagement, btnPatientManagement
+            mainView.getManageStaffButton().setVisible(true);
+            mainView.getManagePatientsButton().setVisible(true);
+        } else if ("Receptionist".equalsIgnoreCase(role)) {
+            // Receptionist: Show btnPatientManagement, btnAppointments
+            mainView.getManagePatientsButton().setVisible(true);
+            mainView.getAppointmentsButton().setVisible(true);
+        }
+        
+        // Always show Dashboard button
+        mainView.getDashboardButton().setVisible(true);
+        
+        // Determine default landing page based on role
+        String defaultCard = determineDefaultCard(role);
+        mainView.showCard(defaultCard);
+        
+        // Refresh data for the default card
+        refreshDefaultCard(defaultCard);
+    }
+    
+    /**
+     * Determine the default landing card for each role.
+     * GP/Specialist/Developer: Default to "Dashboard"
+     * Nurse: Default to "Medical Records"
+     * Admin: Default to "Manage Staff"
+     * Receptionist: Default to "Manage Patients"
+     */
+    private String determineDefaultCard(String role) {
+        if ("Nurse".equalsIgnoreCase(role)) {
+            return "Medical Records";
+        } else if ("Admin".equalsIgnoreCase(role) || role.toLowerCase().contains("admin")) {
+            return "Manage Staff";
+        } else if ("Receptionist".equalsIgnoreCase(role)) {
+            return "Manage Patients";
+        } else {
+            // GP, Specialist, Developer default to Dashboard
+            return "Dashboard";
+        }
+    }
+    
+    /**
+     * Refresh data when showing default card based on role.
+     */
+    private void refreshDefaultCard(String cardName) {
+        if ("Dashboard".equals(cardName)) {
+            showTodayAppointments();
+        } else if ("Manage Staff".equals(cardName) && staffManagementController != null) {
+            staffManagementController.loadStaffTable();
+        } else if ("Manage Patients".equals(cardName) && patientManagementController != null) {
+            patientManagementController.loadPatients();
+        }
+        // Medical Records doesn't need refresh on load
+    }
+    
+    /**
+     * Clear any active selections on buttons to prevent UI glitches.
+     */
+    private void clearButtonSelections() {
+        // Clear any button focus or selection states
+        mainView.getAppointmentsButton().setSelected(false);
+        mainView.getMedicalRecordsButton().setSelected(false);
+        mainView.getManageStaffButton().setSelected(false);
+        mainView.getManagePatientsButton().setSelected(false);
     }
     
     private void setupNavigation() {

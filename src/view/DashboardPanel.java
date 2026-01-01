@@ -61,9 +61,17 @@ public class DashboardPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
-        // Top panel with search/filter controls
+        // Top panel with title and search/filter controls
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        
+        // Title at the very top
+        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
+        JLabel titleLabel = new JLabel("My Appointments");
+        titleLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+        titlePanel.add(titleLabel);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        topPanel.add(titlePanel);
         
         // Search and filter panel
         JPanel searchFilterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
