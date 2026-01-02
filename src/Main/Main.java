@@ -1,6 +1,7 @@
 package Main;
 
 import model.*;
+import repository.PatientRepository;
 import repository.ReferralRepository;
 import repository.StaffRepository;
 import view.LoginView;

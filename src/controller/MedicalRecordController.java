@@ -1,6 +1,7 @@
 package controller;
 
 import model.*;
+import repository.PatientRepository;
 import repository.ReferralRepository;
 import view.*;
 import javax.swing.*;
@@ -19,7 +20,7 @@ public class MedicalRecordController {
     private final PrescriptionRepository prescriptionRepository;
     private final ClinicianRepository clinicianRepository;
     private final FacilityRepository facilityRepository;
-    private final ReferralRepository referralRepository;
+    private final ReferralRepository referralRepo;
     private final Clinician currentClinician;
     
     private Patient currentPatient = null;
@@ -30,7 +31,6 @@ public class MedicalRecordController {
                                   PrescriptionRepository prescriptionRepository,
                                   ClinicianRepository clinicianRepository,
                                   FacilityRepository facilityRepository,
-                                  ReferralRepository referralRepository,
                                   Clinician currentClinician) {
         this.view = view;
         this.patientRepository = patientRepository;
@@ -38,20 +38,18 @@ public class MedicalRecordController {
         this.prescriptionRepository = prescriptionRepository;
         this.clinicianRepository = clinicianRepository;
         this.facilityRepository = facilityRepository;
-        this.referralRepository = referralRepository;
+        this.referralRepo = ReferralRepository.getInstance("src/data/referrals.csv");
         this.currentClinician = currentClinician;
         
         bind();
     }
     
-    // Bind all action listeners to the view components
     public void bind() {
         view.getSearchButton().addActionListener(new SearchButtonListener());
         view.getIssuePrescriptionButton().addActionListener(new IssuePrescriptionButtonListener());
         view.getGenerateReferralButton().addActionListener(new GenerateReferralButtonListener());
     }
     
-    // Handle search button click
     private void handleSearch() {
         String patientId = view.getPatientId();
         String patientName = view.getPatientName();
@@ -59,21 +57,16 @@ public class MedicalRecordController {
         
         Patient foundPatient = null;
         
-        // Search by Patient ID first
         if (!patientId.isEmpty()) {
             foundPatient = patientRepository.findById(patientId);
-        }
-        // If not found, search by name
-        else if (!patientName.isEmpty()) {
+        } else if (!patientName.isEmpty()) {
             for (Patient p : patientRepository.getAll()) {
                 if (p.getFullName().toLowerCase().contains(patientName.toLowerCase())) {
                     foundPatient = p;
                     break;
                 }
             }
-        }
-        // If not found, search by NHS number
-        else if (!nhsNumber.isEmpty()) {
+        } else if (!nhsNumber.isEmpty()) {
             for (Patient p : patientRepository.getAll()) {
                 if (nhsNumber.equals(p.getNhsNumber())) {
                     foundPatient = p;
@@ -94,43 +87,32 @@ public class MedicalRecordController {
             return;
         }
         
-        // Update current patient
         currentPatient = foundPatient;
         view.setCurrentPatientId(foundPatient.getPatientId());
         
-        // Update summary panel
         view.updateSummary(
             foundPatient.getFullName(),
             foundPatient.getDateOfBirth(),
             foundPatient.getGender(),
-            "N/A" // Blood type not in CSV
+            "N/A"
         );
         
-        // Load encounters (appointments) for this patient
         loadEncounters(foundPatient.getPatientId());
-        
-        // Load medications (prescriptions) for this patient
         loadMedications(foundPatient.getPatientId());
-        
-        // Load referrals for this patient
         loadReferrals(foundPatient.getPatientId());
         
-        // Enable action buttons
         view.setIssuePrescriptionEnabled(true);
         view.setGenerateReferralEnabled(true);
     }
     
-    // Load encounters from appointments repository
     private void loadEncounters(String patientId) {
         view.clearEncounters();
         
         for (Appointment appointment : appointmentRepository.getAll()) {
             if (patientId.equals(appointment.getPatientId())) {
-                // Get clinician name
                 Clinician clinician = clinicianRepository.findById(appointment.getClinicianId());
                 String clinicianName = clinician != null ? clinician.getFullName() : appointment.getClinicianId();
                 
-                // Get notes (can be empty)
                 String notes = appointment.getNotes() != null ? appointment.getNotes() : "";
                 
                 view.addEncounterRow(
@@ -143,7 +125,6 @@ public class MedicalRecordController {
         }
     }
     
-    // Load medications from prescriptions repository
     private void loadMedications(String patientId) {
         view.clearMedications();
         
@@ -158,14 +139,12 @@ public class MedicalRecordController {
         }
     }
     
-    // Handle issue prescription button click
     private void handleIssuePrescription() {
         if (currentPatient == null) {
             JOptionPane.showMessageDialog(view, "Please search for a patient first.", "No Patient Selected", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        // Create and show prescription dialog
         JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view);
         NewPrescriptionDialog dialog = new NewPrescriptionDialog(
             parentFrame,
@@ -173,10 +152,8 @@ public class MedicalRecordController {
             currentClinician
         );
         
-        // Set context info in dialog
         dialog.setContextInfo(currentPatient.getFullName(), currentClinician.getFullName());
         
-        // Handle confirm button
         dialog.getConfirmButton().addActionListener(e -> {
             String medication = dialog.getMedication();
             String dosage = dialog.getDosage();
@@ -184,13 +161,11 @@ public class MedicalRecordController {
             String duration = dialog.getDuration();
             String instructions = dialog.getInstructions();
             
-            // Validate required fields
             if (medication.isEmpty() || dosage.isEmpty() || frequency.isEmpty() || duration.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "Please fill in all required fields.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            // Create new prescription
             String prescriptionId = prescriptionRepository.generateNewId();
             String today = java.time.LocalDate.now().toString();
             
@@ -198,37 +173,32 @@ public class MedicalRecordController {
                 prescriptionId,
                 currentPatient.getPatientId(),
                 currentClinician.getClinicianId(),
-                "", // appointmentId - can be empty
+                "",
                 today,
                 medication,
                 dosage,
                 frequency,
                 duration,
-                "", // quantity - can be calculated later
+                "",
                 instructions,
-                "", // pharmacyName - can be set later
+                "",
                 "Issued",
                 today,
-                "" // collectionDate - empty initially
+                ""
             );
             
-            // Add to repository
             prescriptionRepository.addAndAppend(newPrescription);
-            
-            // Refresh medications table
             loadMedications(currentPatient.getPatientId());
             
             dialog.dispose();
             JOptionPane.showMessageDialog(view, "Prescription issued successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         });
         
-        // Handle cancel button
         dialog.getCancelButton().addActionListener(e -> dialog.dispose());
         
         dialog.setVisible(true);
     }
     
-    // Action listener for search button
     private class SearchButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -236,19 +206,16 @@ public class MedicalRecordController {
         }
     }
     
-    // Load referrals from referral repository
     private void loadReferrals(String patientId) {
         view.clearReferrals();
         
-        for (Referral referral : referralRepository.findByPatientId(patientId)) {
-            // Get specialty from referred-to clinician or use requested investigations
+        for (Referral referral : referralRepo.findByPatientId(patientId)) {
             String specialty = referral.getRequestedInvestigations();
             if (specialty == null || specialty.isEmpty()) {
                 Clinician referredTo = clinicianRepository.findById(referral.getReferredToClinicianId());
                 specialty = referredTo != null ? referredTo.getSpeciality() : "N/A";
             }
             
-            // Get facility name
             Facility facility = facilityRepository.findById(referral.getReferredToFacilityId());
             String facilityName = facility != null ? facility.getFacilityName() : referral.getReferredToFacilityId();
             
@@ -261,14 +228,12 @@ public class MedicalRecordController {
         }
     }
     
-    // Handle generate referral button click
     private void handleGenerateReferral() {
         if (currentPatient == null) {
             JOptionPane.showMessageDialog(view, "Please search for a patient first.", "No Patient Selected", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        // Create and show referral dialog
         JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view);
         NewReferralDialog dialog = new NewReferralDialog(
             parentFrame,
@@ -276,23 +241,19 @@ public class MedicalRecordController {
             currentClinician
         );
         
-        // Set context info in dialog
         dialog.setContextInfo(currentPatient.getFullName(), currentClinician.getFullName());
         
-        // Handle confirm button
         dialog.getConfirmButton().addActionListener(e -> {
             String targetSpecialty = dialog.getTargetSpecialty();
             String targetFacility = dialog.getTargetFacility();
             String urgency = dialog.getUrgency();
             String clinicalSummary = dialog.getClinicalSummary();
             
-            // Validate required fields
             if (targetFacility.isEmpty() || clinicalSummary.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "Please fill in all required fields.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            // Find a clinician with the target specialty (or use empty)
             String referredToClinicianId = "";
             for (Clinician c : clinicianRepository.getAll()) {
                 if (targetSpecialty.equals(c.getSpeciality())) {
@@ -301,7 +262,6 @@ public class MedicalRecordController {
                 }
             }
             
-            // Find facility ID from name (or use empty)
             String referredToFacilityId = "";
             for (Facility f : facilityRepository.getAll()) {
                 if (targetFacility.equals(f.getFacilityName())) {
@@ -310,8 +270,7 @@ public class MedicalRecordController {
                 }
             }
             
-            // Create new referral
-            String referralId = referralRepository.generateNewId();
+            String referralId = referralRepo.generateNewId();
             String today = LocalDate.now().toString();
             
             Referral newReferral = new Referral(
@@ -327,32 +286,26 @@ public class MedicalRecordController {
                 clinicalSummary,
                 targetSpecialty,
                 "Pending",
-                "", // appointmentId - empty initially
-                "", // notes - empty initially
+                "",
+                "",
                 today,
                 today
             );
             
-            // Add to repository
-            referralRepository.addAndAppend(newReferral);
-            
-            // Generate referral letter file
+            referralRepo.addAndAppend(newReferral);
             generateReferralLetter(newReferral);
-            
-            // Refresh referrals table
             loadReferrals(currentPatient.getPatientId());
             
             dialog.dispose();
             JOptionPane.showMessageDialog(view, "Referral generated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         });
         
-        // Handle cancel button
         dialog.getCancelButton().addActionListener(e -> dialog.dispose());
         
         dialog.setVisible(true);
     }
     
-    // Generate referral letter file
+    // generates a text file for the referral letter - saves it to the referrals folder
     private void generateReferralLetter(Referral referral) {
         Patient patient = patientRepository.findById(referral.getPatientId());
         Facility referringFacility = facilityRepository.findById(referral.getReferringFacilityId());
@@ -363,12 +316,10 @@ public class MedicalRecordController {
             return;
         }
         
-        // Generate filename: Referral_[PatientName]_[Date].txt
         String patientName = patient.getFullName().replaceAll("[^a-zA-Z0-9]", "_");
         String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String filename = "Referral_" + patientName + "_" + dateStr + ".txt";
         
-        // Create output directory if it doesn't exist
         File outputDir = new File("src/data/referrals");
         if (!outputDir.exists()) {
             outputDir.mkdirs();
@@ -377,7 +328,6 @@ public class MedicalRecordController {
         File letterFile = new File(outputDir, filename);
         
         try (PrintWriter writer = new PrintWriter(letterFile)) {
-            // Write letter content
             writer.println("REFERRAL LETTER");
             writer.println("Date: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
             writer.println("TO: " + referral.getRequestedInvestigations() + " Department");
@@ -412,7 +362,6 @@ public class MedicalRecordController {
         }
     }
     
-    // Action listener for issue prescription button
     private class IssuePrescriptionButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -420,7 +369,6 @@ public class MedicalRecordController {
         }
     }
     
-    // Action listener for generate referral button
     private class GenerateReferralButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {

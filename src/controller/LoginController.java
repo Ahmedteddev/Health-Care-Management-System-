@@ -1,6 +1,7 @@
 package controller;
 
 import model.*;
+import repository.PatientRepository;
 import repository.ReferralRepository;
 import repository.StaffRepository;
 import view.LoginView;
@@ -41,8 +42,6 @@ public class LoginController {
     
     private void bind() {
         view.getLoginButton().addActionListener(e -> handleLogin());
-        
-        // Enter key in password field also triggers login
         view.getPasswordField().addActionListener(e -> handleLogin());
     }
     
@@ -55,43 +54,33 @@ public class LoginController {
             return;
         }
         
-        // Universal testing password: "12345" for all accounts
+        // using universal password for testing - all accounts use "12345"
         if (!password.equals("12345")) {
             view.setStatusMessage("Invalid password. Use '12345' for testing.");
             return;
         }
         
-        // Check if user is in StaffRepository
         Staff staff = findStaffByUsername(username);
         if (staff != null) {
-            // Identify role
             String role = identifyRole(staff);
-            // Launch DashboardController with role
             launchStaffDashboard(staff, role);
             view.dispose();
             return;
         }
         
-        // Check if user is in PatientRepository (using ID or surname)
         Patient patient = findPatientByUsername(username);
         if (patient != null) {
-            // Launch PatientDashboardController
             launchPatientDashboard(patient.getPatientId());
             view.dispose();
             return;
         }
         
-        // Login failed
         view.setStatusMessage("Invalid username or password.");
         view.clearFields();
     }
     
-    /**
-     * Identify the role of a staff member.
-     * Returns: "Developer", "GP", "Specialist", "Nurse", "Admin", "Receptionist", or "Staff"
-     */
+    // figures out what role the user is based on their title/role field - had to check a few different places
     private String identifyRole(Staff staff) {
-        // Check for Developer role first
         String role = staff.getRole();
         if ("Developer".equalsIgnoreCase(role) || "DEV001".equalsIgnoreCase(staff.getStaffId())) {
             return "Developer";
@@ -110,12 +99,10 @@ public class LoginController {
             } else if (title != null && title.equalsIgnoreCase("GP")) {
                 return "GP";
             } else {
-                // Default for clinicians
                 return "GP";
             }
         }
         
-        // Check role from Staff
         if (role != null) {
             String roleLower = role.toLowerCase();
             if (roleLower.contains("admin") || roleLower.contains("administrator") || 
@@ -132,18 +119,14 @@ public class LoginController {
             }
         }
         
-        // Default to staff role or "Staff"
         return role != null ? role : "Staff";
     }
     
     private Staff findStaffByUsername(String username) {
-        // Check for Developer role (DEV001)
         if ("DEV001".equalsIgnoreCase(username)) {
-            // Create a Developer staff object
             return createDeveloperStaff();
         }
         
-        // Search in StaffRepository
         for (Staff staff : staffRepository.getAllStaff()) {
             if (username.equalsIgnoreCase(staff.getStaffId()) || 
                 username.equalsIgnoreCase(staff.getEmail()) ||
@@ -152,23 +135,19 @@ public class LoginController {
             }
         }
         
-        // Also check in ClinicianRepository
         for (Clinician clinician : clinicianRepository.getAll()) {
             if (username.equalsIgnoreCase(clinician.getClinicianId()) ||
                 username.equalsIgnoreCase(clinician.getEmail()) ||
                 username.equalsIgnoreCase(clinician.getFullName())) {
-                return clinician; // Clinician extends Staff
+                return clinician;
             }
         }
         
         return null;
     }
     
-    /**
-     * Create a Developer staff object for super-user access.
-     */
+    // creates a developer user for testing - gives access to everything
     private Staff createDeveloperStaff() {
-        // Create a temporary Staff object with Developer role
         Staff developer = new Staff();
         developer.setStaffId("DEV001");
         developer.setFirstName("Developer");
@@ -181,13 +160,11 @@ public class LoginController {
     }
     
     private Patient findPatientByUsername(String username) {
-        // Search by Patient ID
         Patient patient = patientRepository.findById(username);
         if (patient != null) {
             return patient;
         }
         
-        // Search by surname (last name)
         for (Patient p : patientRepository.getAll()) {
             if (username.equalsIgnoreCase(p.getLastName()) ||
                 username.equalsIgnoreCase(p.getEmail())) {
@@ -199,18 +176,15 @@ public class LoginController {
     }
     
     private void launchStaffDashboard(Staff staff, String role) {
-        // Find the clinician if it's a clinician
         Clinician clinician = null;
         if (staff instanceof Clinician) {
             clinician = (Clinician) staff;
         } else {
-            // Try to find in ClinicianRepository by ID
             clinician = clinicianRepository.findById(staff.getStaffId());
         }
         
         if (clinician == null) {
-            // If not a clinician, create a default clinician or handle differently
-            // For now, we'll use the first available clinician
+            // fallback to first clinician if not found - needed this for non-clinician staff
             if (!clinicianRepository.getAll().isEmpty()) {
                 clinician = clinicianRepository.getAll().get(0);
             } else {
@@ -222,10 +196,8 @@ public class LoginController {
             }
         }
         
-        // Create GP Dashboard
         GPDashboard dashboard = new GPDashboard(clinician);
         
-        // Create Dashboard Controller with role
         DashboardController dashboardController = new DashboardController(
             dashboard,
             appointmentRepository,
@@ -235,10 +207,9 @@ public class LoginController {
             prescriptionRepository,
             referralRepository,
             staffRepository,
-            role  // Pass the role string
+            role
         );
         
-        // Create Appointment Controller
         AppointmentController appointmentController = new AppointmentController(
             dashboardController.getAppointmentPanel(),
             appointmentRepository,
@@ -254,10 +225,8 @@ public class LoginController {
     }
     
     private void launchPatientDashboard(String patientId) {
-        // Create Patient Dashboard
         PatientDashboardFrame patientDashboard = new PatientDashboardFrame();
         
-        // Create Patient Dashboard Controller with logged-in patient ID
         PatientDashboardController patientController = new PatientDashboardController(
             patientDashboard,
             appointmentRepository,
@@ -265,7 +234,7 @@ public class LoginController {
             patientRepository,
             clinicianRepository,
             facilityRepository,
-            patientId  // Pass the logged-in patient ID
+            patientId
         );
         
         patientDashboard.setVisible(true);

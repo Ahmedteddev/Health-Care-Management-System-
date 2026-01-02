@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class ReferralRepository {
     
-    private static ReferralRepository instance;
+    private static ReferralRepository referralRepo;
     private final List<Referral> referrals;
     private final String csvPath;
     private static final int EXPECTED_COLUMNS = 16;
@@ -31,10 +31,10 @@ public class ReferralRepository {
      * Implements lazy initialization.
      */
     public static synchronized ReferralRepository getInstance(String csvPath) {
-        if (instance == null) {
-            instance = new ReferralRepository(csvPath);
+        if (referralRepo == null) {
+            referralRepo = new ReferralRepository(csvPath);
         }
-        return instance;
+        return referralRepo;
     }
     
     /**

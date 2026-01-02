@@ -33,34 +33,28 @@ public class StaffManagementController {
         loadStaffTable();
     }
     
-    private List<Staff> allStaffList = new ArrayList<>(); // Store all staff for filtering
+    private List<Staff> allStaffList = new ArrayList<>();
     
     private void bind() {
-        // Button listeners
         view.getAddAdminStaffButton().addActionListener(new AddStaffListener());
         view.getAddClinicianButton().addActionListener(new AddClinicianListener());
         view.getEditStaffButton().addActionListener(new EditStaffListener());
         view.getRemoveStaffButton().addActionListener(new RemoveStaffListener());
         view.getSearchButton().addActionListener(new SearchFilterListener());
         
-        // Enter key in search field also triggers search
         view.getSearchField().addActionListener(new SearchFilterListener());
         
-        // Table selection listener
         view.getStaffTable().getSelectionModel().addListSelectionListener(new StaffSelectionListener());
     }
     
-    // Load staff table (public for external refresh) - combines Staff and Clinicians
+    // combines both staff and clinicians into one list for the table
     public void loadStaffTable() {
         allStaffList.clear();
-        // Add all regular staff
         allStaffList.addAll(staffRepository.getAllStaff());
-        // Add all clinicians (they extend Staff)
         allStaffList.addAll(clinicianRepository.getAll());
         view.setStaff(allStaffList);
     }
     
-    // Filter staff by role and search term
     private void filterStaff() {
         String searchTerm = view.getSearchField().getText().toLowerCase().trim();
         String selectedRole = (String) view.getFilterComboBox().getSelectedItem();
@@ -68,14 +62,12 @@ public class StaffManagementController {
         List<Staff> filteredList = new ArrayList<>();
         
         for (Staff staff : allStaffList) {
-            // Filter by role
             boolean roleMatches = false;
             if ("All".equals(selectedRole)) {
                 roleMatches = true;
             } else {
                 String staffRole = staff.getRole();
                 if (staffRole != null) {
-                    // Check if role matches or contains the selected role
                     if (selectedRole.equals(staffRole) || 
                         (selectedRole.equals("Nurse") && staffRole.contains("Nurse")) ||
                         (selectedRole.equals("Consultant") && staffRole.contains("Consultant"))) {
@@ -88,7 +80,6 @@ public class StaffManagementController {
                 continue;
             }
             
-            // Filter by search term (searches in ID, First Name, Last Name, Email)
             if (searchTerm.isEmpty()) {
                 filteredList.add(staff);
             } else {
@@ -109,7 +100,6 @@ public class StaffManagementController {
         view.setStaff(filteredList);
     }
     
-    // Search and filter listener
     private class SearchFilterListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -117,31 +107,26 @@ public class StaffManagementController {
         }
     }
     
-    // Add staff handler (for Admin/Staff only)
     private class AddStaffListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view);
             StaffFormDialog dialog = new StaffFormDialog(parentFrame, "Add New Admin/Staff Member");
             
-            // Generate new staff ID
             String newId = generateStaffId();
             dialog.setStaffId(newId);
             dialog.setStaffIdEditable(false);
             
             dialog.getSaveButton().addActionListener(ev -> {
-                // Validate required fields
                 if (dialog.getStaffData().getFirstName().isEmpty() || 
                     dialog.getStaffData().getLastName().isEmpty()) {
                     JOptionPane.showMessageDialog(dialog, "First name and last name are required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 
-                // Get staff data from dialog
                 Staff newStaff = dialog.getStaffData();
                 newStaff.setStaffId(newId);
                 
-                // Set default values for required fields
                 if (newStaff.getFacilityId() == null || newStaff.getFacilityId().isEmpty()) {
                     newStaff.setFacilityId("");
                 }
@@ -155,10 +140,7 @@ public class StaffManagementController {
                     newStaff.setLineManager("");
                 }
                 
-                // Add to StaffRepository only (saves to CSV)
                 staffRepository.addStaff(newStaff);
-                
-                // Refresh table and apply current filter
                 loadStaffTable();
                 filterStaff();
                 
@@ -171,31 +153,26 @@ public class StaffManagementController {
         }
     }
     
-    // Add clinician handler
     private class AddClinicianListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view);
             ClinicianFormDialog dialog = new ClinicianFormDialog(parentFrame, "Add New Clinician");
             
-            // Generate new clinician ID
             String newId = generateClinicianId();
             dialog.setClinicianId(newId);
             dialog.setClinicianIdEditable(false);
             
             dialog.getSaveButton().addActionListener(ev -> {
-                // Validate required fields
                 if (dialog.getClinicianData().getFirstName().isEmpty() || 
                     dialog.getClinicianData().getLastName().isEmpty()) {
                     JOptionPane.showMessageDialog(dialog, "First name and last name are required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 
-                // Get clinician data from dialog
                 Clinician newClinician = dialog.getClinicianData();
                 newClinician.setClinicianId(newId);
                 
-                // Set default values for required fields
                 if (newClinician.getEmploymentStatus() == null || newClinician.getEmploymentStatus().isEmpty()) {
                     newClinician.setEmploymentStatus("Full-time");
                 }
@@ -203,13 +180,10 @@ public class StaffManagementController {
                     newClinician.setStartDate(LocalDate.now().toString());
                 }
                 
-                // Call StaffRepository.getInstance().addStaff(clinicianObj)
+                // clinicians need to be added to both repositories since they extend Staff
                 staffRepository.addStaff(newClinician);
-                
-                // Call ClinicianRepository.getInstance().addClinician(clinicianObj)
                 clinicianRepository.addAndAppend(newClinician);
                 
-                // Refresh table and apply current filter
                 loadStaffTable();
                 filterStaff();
                 
@@ -222,7 +196,6 @@ public class StaffManagementController {
         }
     }
     
-    // Edit staff handler
     private class EditStaffListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -232,12 +205,10 @@ public class StaffManagementController {
                 return;
             }
             
-            // Check the role of the selected staff
             String role = view.getSelectedRole();
             
-            // If "GP" or "Nurse", open ClinicianFormDialog with data from BOTH repositories
+            // clinicians (GP/Nurse) need special handling since they're in both repositories
             if ("GP".equals(role) || "Nurse".equals(role) || role != null && (role.contains("Consultant") || role.contains("Nurse"))) {
-                // Fetch from both repositories
                 Staff staff = staffRepository.findStaffById(staffId);
                 Clinician foundClinician = clinicianRepository.findById(staffId);
                 
@@ -246,46 +217,39 @@ public class StaffManagementController {
                 }
                 
                 if (foundClinician == null) {
-                    // Try to find by clinician ID
                     foundClinician = clinicianRepository.findById(staffId);
                 }
                 
-                final Clinician clinician = foundClinician; // Make final for lambda
+                final Clinician clinician = foundClinician;
                 
                 if (clinician == null) {
                     JOptionPane.showMessageDialog(view, "Clinician not found.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 
-                // Open ClinicianFormDialog pre-filled with data from BOTH repositories
                 JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view);
                 ClinicianFormDialog dialog = new ClinicianFormDialog(parentFrame, "Edit Clinician");
                 dialog.setClinicianData(clinician);
                 dialog.setClinicianIdEditable(false);
                 
                 dialog.getSaveButton().addActionListener(ev -> {
-                    // Validate required fields
                     if (dialog.getClinicianData().getFirstName().isEmpty() || 
                         dialog.getClinicianData().getLastName().isEmpty()) {
                         JOptionPane.showMessageDialog(dialog, "First name and last name are required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
                     
-                    // Get updated clinician data from dialog
                     Clinician updatedClinician = dialog.getClinicianData();
-                    updatedClinician.setClinicianId(staffId); // Keep the same ID
+                    updatedClinician.setClinicianId(staffId);
                     
-                    // Preserve other fields that aren't in the form
                     updatedClinician.setEmploymentStatus(clinician.getEmploymentStatus());
                     if (updatedClinician.getStartDate() == null || updatedClinician.getStartDate().isEmpty()) {
                         updatedClinician.setStartDate(clinician.getStartDate());
                     }
                     
-                    // Update both repositories if it's a clinician
                     staffRepository.updateStaff(updatedClinician);
                     clinicianRepository.updateClinician(updatedClinician);
                     
-                    // Refresh table and apply current filter
                     loadStaffTable();
                     filterStaff();
                     
@@ -296,32 +260,27 @@ public class StaffManagementController {
                 dialog.getCancelButton().addActionListener(ev -> dialog.dispose());
                 dialog.setVisible(true);
             } else {
-                // Otherwise, open the standard StaffFormDialog
                 Staff staff = staffRepository.findStaffById(staffId);
                 if (staff == null) {
                     JOptionPane.showMessageDialog(view, "Staff member not found.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 
-                // Open StaffFormDialog pre-filled with that data
                 JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view);
                 StaffFormDialog dialog = new StaffFormDialog(parentFrame, "Edit Staff Member");
                 dialog.setStaffData(staff);
                 dialog.setStaffIdEditable(false);
                 
                 dialog.getSaveButton().addActionListener(ev -> {
-                    // Validate required fields
                     if (dialog.getStaffData().getFirstName().isEmpty() || 
                         dialog.getStaffData().getLastName().isEmpty()) {
                         JOptionPane.showMessageDialog(dialog, "First name and last name are required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
                     
-                    // Get updated staff data from dialog
                     Staff updatedStaff = dialog.getStaffData();
-                    updatedStaff.setStaffId(staffId); // Keep the same ID
+                    updatedStaff.setStaffId(staffId);
                     
-                    // Preserve other fields that aren't in the form
                     updatedStaff.setFacilityId(staff.getFacilityId());
                     updatedStaff.setEmploymentStatus(staff.getEmploymentStatus());
                     if (updatedStaff.getStartDate() == null || updatedStaff.getStartDate().isEmpty()) {
@@ -329,10 +288,7 @@ public class StaffManagementController {
                     }
                     updatedStaff.setLineManager(staff.getLineManager());
                     
-                    // Update the object and call updateStaff
                     staffRepository.updateStaff(updatedStaff);
-                    
-                    // Refresh table and apply current filter
                     loadStaffTable();
                     filterStaff();
                     
@@ -356,7 +312,6 @@ public class StaffManagementController {
                 return;
             }
             
-            // Check the role
             String role = view.getSelectedRole();
             Staff staff = staffRepository.findStaffById(staffId);
             Clinician clinician = clinicianRepository.findById(staffId);
@@ -369,7 +324,6 @@ public class StaffManagementController {
             String name = staff != null ? staff.getFirstName() + " " + staff.getLastName() : 
                           clinician != null ? clinician.getFirstName() + " " + clinician.getLastName() : "Unknown";
             
-            // Standard confirmation dialog
             int result = JOptionPane.showConfirmDialog(
                 view,
                 "Are you sure you want to remove " + name + "?",
@@ -379,7 +333,7 @@ public class StaffManagementController {
             );
             
             if (result == JOptionPane.YES_OPTION) {
-                // If the role is "GP" or "Nurse", call delete on both StaffRepository and ClinicianRepository
+                // need to delete from both repositories if it's a clinician
                 if ("GP".equals(role) || "Nurse".equals(role) || role != null && (role.contains("Consultant") || role.contains("Nurse"))) {
                     if (clinician != null) {
                         clinicianRepository.remove(clinician);
@@ -389,13 +343,11 @@ public class StaffManagementController {
                         staffRepository.removeStaff(staff);
                     }
                 } else {
-                    // Otherwise, just call StaffRepository.delete()
                     if (staff != null) {
                         staffRepository.removeStaff(staff);
                     }
                 }
                 
-                // Refresh table and apply current filter
                 loadStaffTable();
                 filterStaff();
                 
@@ -404,7 +356,6 @@ public class StaffManagementController {
         }
     }
     
-    // Table selection listener
     private class StaffSelectionListener implements ListSelectionListener {
         @Override
         public void valueChanged(ListSelectionEvent e) {
@@ -415,7 +366,6 @@ public class StaffManagementController {
         }
     }
     
-    // Helper method to generate staff ID
     private String generateStaffId() {
         int max = 0;
         for (Staff s : staffRepository.getAllStaff()) {
@@ -430,12 +380,10 @@ public class StaffManagementController {
         return String.format("ST%03d", max + 1);
     }
     
-    // Helper method to generate clinician ID
     private String generateClinicianId() {
         return clinicianRepository.generateNewId();
     }
     
-    // Getter for staff table (for external access if needed)
     public JTable getStaffTable() {
         return view.getStaffTable();
     }

@@ -11,24 +11,14 @@ public class AppointmentRepository {
     private final List<Appointment> appointments = new ArrayList<>();
     private final String csvPath;
 
-    /**
-     * Public constructor for backward compatibility.
-     * Creates a new instance. If instance is null, sets it as the singleton instance.
-     * Note: For new code, use getInstance() instead for proper singleton pattern.
-     */
     public AppointmentRepository(String csvPath) {
         this.csvPath = csvPath;
         load();
-        // If instance is null, set it (allows singleton pattern to work)
         if (instance == null) {
             instance = this;
         }
     }
     
-    /**
-     * Public static method to get the singleton instance.
-     * Implements lazy initialization.
-     */
     public static synchronized AppointmentRepository getInstance(String csvPath) {
         if (instance == null) {
             instance = new AppointmentRepository(csvPath);
@@ -88,12 +78,6 @@ public class AppointmentRepository {
         updateAppointment(updated);
     }
     
-    /**
-     * Updates an appointment in the repository and saves to CSV.
-     * Searches the CSV for the Appointment ID and replaces the line with new data.
-     * 
-     * @param updated The updated Appointment object
-     */
     public void updateAppointment(Appointment updated) {
         if (updated == null) {
             System.err.println("Cannot update null appointment.");

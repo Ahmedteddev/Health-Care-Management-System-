@@ -188,6 +188,41 @@ public class PatientRepository {
     }
     
     /**
+     * Adds a new patient and appends it to CSV.
+     * Alias for add() method for backward compatibility.
+     * 
+     * @param patient The Patient object to add
+     */
+    public void addAndAppend(Patient patient) {
+        add(patient);
+    }
+    
+    /**
+     * Updates an existing patient in the repository and saves to CSV.
+     * 
+     * @param patient The updated Patient object
+     */
+    public void updatePatient(Patient patient) {
+        if (patient == null) {
+            System.err.println("Cannot update null patient.");
+            return;
+        }
+        
+        // Find and update the patient in the list
+        for (int i = 0; i < patients.size(); i++) {
+            if (patients.get(i).getPatientId().equals(patient.getPatientId())) {
+                patients.set(i, patient);
+                // Save all to CSV
+                saveAll();
+                System.out.println("Successfully updated patient " + patient.getPatientId());
+                return;
+            }
+        }
+        
+        System.err.println("Patient with ID " + patient.getPatientId() + " not found for update.");
+    }
+    
+    /**
      * Removes a patient from the repository.
      * Note: This does not remove from CSV file (would require rewriting the entire file).
      * 
@@ -197,6 +232,53 @@ public class PatientRepository {
         if (patient != null) {
             patients.remove(patient);
         }
+    }
+    
+    /**
+     * Saves all patients to the CSV file.
+     */
+    public void saveAll() {
+        try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(csvPath))) {
+            // Write header
+            bw.write("patient_id,first_name,last_name,date_of_birth,nhs_number,gender,phone_number,email,address,postcode,emergency_contact_name,emergency_contact_phone,registration_date,gp_surgery_id");
+            bw.newLine();
+            
+            // Write all patients
+            for (Patient p : patients) {
+                bw.write(escapeCsv(p.getPatientId()) + ",");
+                bw.write(escapeCsv(p.getFirstName()) + ",");
+                bw.write(escapeCsv(p.getLastName()) + ",");
+                bw.write(escapeCsv(p.getDateOfBirth()) + ",");
+                bw.write(escapeCsv(p.getNhsNumber()) + ",");
+                bw.write(escapeCsv(p.getGender()) + ",");
+                bw.write(escapeCsv(p.getPhoneNumber()) + ",");
+                bw.write(escapeCsv(p.getEmail()) + ",");
+                bw.write(escapeCsv(p.getAddress()) + ",");
+                bw.write(escapeCsv(p.getPostcode()) + ",");
+                bw.write(escapeCsv(p.getEmergencyContactName()) + ",");
+                bw.write(escapeCsv(p.getEmergencyContactPhone()) + ",");
+                bw.write(escapeCsv(p.getRegistrationDate()) + ",");
+                bw.write(escapeCsv(p.getGpSurgeryId()));
+                bw.newLine();
+            }
+            
+        } catch (java.io.IOException ex) {
+            System.err.println("Failed to save patients to CSV file: " + csvPath);
+            System.err.println("Error: " + ex.getMessage());
+        }
+    }
+    
+    /**
+     * Escapes CSV values that contain commas or quotes.
+     */
+    private String escapeCsv(String value) {
+        if (value == null) {
+            return "";
+        }
+        if (value.contains(",") || value.contains("\"")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 }
 

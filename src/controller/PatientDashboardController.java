@@ -1,6 +1,7 @@
 package controller;
 
 import model.*;
+import repository.PatientRepository;
 import view.PatientDashboardFrame;
 
 public class PatientDashboardController {
@@ -28,16 +29,10 @@ public class PatientDashboardController {
         this.facilityRepository = facilityRepository;
         this.loggedInPatientId = loggedInPatientId;
         
-        // Call refreshData() in constructor
         refreshData();
     }
     
-    /**
-     * Refresh data method that loads appointments and prescriptions for the logged-in patient.
-     */
     public void refreshData() {
-        
-        // Set patient name in welcome label
         Patient patient = patientRepository.findById(loggedInPatientId);
         if (patient != null) {
             view.setPatientName(patient.getFullName());
@@ -45,26 +40,18 @@ public class PatientDashboardController {
             view.setPatientName("Patient " + loggedInPatientId);
         }
         
-        // Clear current tables
         view.clearAppointments();
         view.clearPrescriptions();
-        
-        // Load appointments
         loadAppointments();
-        
-        // Load prescriptions
         loadPrescriptions();
     }
     
     private void loadAppointments() {
-        // Pull from AppointmentRepository: Find all rows where Patient ID matches loggedInPatientId
         for (Appointment appointment : appointmentRepository.getAll()) {
             if (loggedInPatientId.equals(appointment.getPatientId())) {
-                // Get clinician name
                 Clinician clinician = clinicianRepository.findById(appointment.getClinicianId());
                 String clinicianName = clinician != null ? clinician.getFullName() : appointment.getClinicianId();
                 
-                // Get facility name (include Facility column from CSV)
                 String facilityName = appointment.getFacilityId();
                 if (facilityRepository != null) {
                     Facility facility = facilityRepository.findById(appointment.getFacilityId());
@@ -73,7 +60,6 @@ public class PatientDashboardController {
                     }
                 }
                 
-                // Add row to Appointment table: Date, Time, Clinician, Facility, Status
                 view.addAppointmentRow(
                     appointment.getAppointmentDate(),
                     appointment.getAppointmentTime(),
@@ -86,10 +72,8 @@ public class PatientDashboardController {
     }
     
     private void loadPrescriptions() {
-        // Pull from PrescriptionRepository: Find all rows where Patient ID matches loggedInPatientId
         for (Prescription prescription : prescriptionRepository.getAll()) {
             if (loggedInPatientId.equals(prescription.getPatientId())) {
-                // Add row to Prescription table: Drug Name, Dosage, Instructions, Date Prescribed
                 view.addPrescriptionRow(
                     prescription.getMedication(),
                     prescription.getDosage(),

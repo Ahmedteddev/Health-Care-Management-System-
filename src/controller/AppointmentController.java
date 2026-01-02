@@ -1,6 +1,7 @@
 package controller;
 
 import model.*;
+import repository.PatientRepository;
 import view.AppointmentPanel;
 import javax.swing.*;
 import java.awt.*;
@@ -9,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AppointmentController {
-    
+
     private final AppointmentPanel view;
     private final AppointmentRepository appointmentRepository;
     private final PatientRepository patientRepository;
@@ -30,33 +31,19 @@ public class AppointmentController {
         this.facilityRepository = facilityRepository;
         
         bind();
-        // Default state: show all appointments (master list)
         refreshAppointmentsTable();
     }
     
     private void bind() {
-        // Load all appointments
         loadAllAppointments();
         
-        // Search button listener
         view.getSearchButton().addActionListener(e -> filterAppointments());
-        
-        // Enter key in search field also triggers search
         view.getSearchField().addActionListener(e -> filterAppointments());
-        
-        // Book New button listener
         view.getBookNewButton().addActionListener(e -> bookNewAppointment());
-        
-        // Reschedule button listener
         view.getRescheduleButton().addActionListener(e -> rescheduleAppointment());
-        
-        // Edit button listener (if needed)
         view.getEditButton().addActionListener(e -> editAppointment());
-        
-        // Cancel button listener (if needed)
         view.getCancelButton().addActionListener(e -> cancelAppointment());
         
-        // Enable/disable buttons based on selection
         view.getTable().getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 boolean hasSelection = view.getSelectedRow() >= 0;
@@ -67,13 +54,11 @@ public class AppointmentController {
         });
     }
     
-    // Load all appointments from repository
     private void loadAllAppointments() {
         allAppointments.clear();
         allAppointments.addAll(appointmentRepository.getAll());
     }
     
-    // Filter appointments based on search criteria (simple master list search)
     private void filterAppointments() {
         String searchText = view.getSearchField().getText().toLowerCase().trim();
         String filterType = (String) view.getFilterComboBox().getSelectedItem();
@@ -84,7 +69,6 @@ public class AppointmentController {
         for (Appointment appointment : allAppointments) {
             boolean matches = true;
             
-            // Filter by search criteria if specified
             if (!searchText.isEmpty()) {
                 boolean searchMatches = false;
                 
@@ -112,23 +96,18 @@ public class AppointmentController {
             }
         }
         
-        // Disable buttons after refresh
         view.setRescheduleButtonEnabled(false);
         view.setEditButtonEnabled(false);
         view.setCancelButtonEnabled(false);
     }
     
-    // Helper method to add appointment row to table
     private void addAppointmentRow(Appointment appointment) {
-        // Get patient name
         Patient patient = patientRepository.findById(appointment.getPatientId());
         String patientName = patient != null ? patient.getFullName() : "Unknown";
         
-        // Get clinician name
         Clinician apptClinician = clinicianRepository.findById(appointment.getClinicianId());
         String clinicianName = apptClinician != null ? apptClinician.getFullName() : appointment.getClinicianId();
         
-        // Get facility name
         String facilityName = appointment.getFacilityId();
         if (facilityRepository != null) {
             Facility facility = facilityRepository.findById(appointment.getFacilityId());
@@ -137,7 +116,6 @@ public class AppointmentController {
             }
         }
         
-        // Add row: ID, Date, Time, Patient Name, Clinician Name, Facility, Reason, Status
         view.addRow(new Object[]{
             appointment.getId(),
             appointment.getAppointmentDate(),
@@ -150,7 +128,6 @@ public class AppointmentController {
         });
     }
     
-    // Refresh appointments table - shows all appointments
     public void refreshAppointmentsTable() {
         view.clearTable();
         loadAllAppointments();
@@ -159,13 +136,11 @@ public class AppointmentController {
             addAppointmentRow(appointment);
         }
         
-        // Disable buttons after refresh
         view.setRescheduleButtonEnabled(false);
         view.setEditButtonEnabled(false);
         view.setCancelButtonEnabled(false);
     }
     
-    // Reschedule appointment - only changes date and time
     private void rescheduleAppointment() {
         String appointmentId = view.getSelectedAppointmentId();
         if (appointmentId == null) {
@@ -179,7 +154,6 @@ public class AppointmentController {
             return;
         }
         
-        // Open JOptionPane asking for new date and time
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
@@ -216,22 +190,17 @@ public class AppointmentController {
                 return;
             }
             
-            // Update the Appointment object
             appointment.setAppointmentDate(newDate);
             appointment.setAppointmentTime(newTime);
             appointment.setLastModified(LocalDate.now().toString());
             
-            // Call AppointmentRepository.getInstance().updateAppointment(app)
             appointmentRepository.updateAppointment(appointment);
-            
-            // Refresh the table view
             filterAppointments();
             
             JOptionPane.showMessageDialog(view, "Appointment rescheduled successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
     
-    // Book new appointment dialog
     private void bookNewAppointment() {
         JDialog dialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(view), "Book New Appointment", true);
         
@@ -241,19 +210,16 @@ public class AppointmentController {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
-        // Patient dropdown
         JComboBox<String> patientCombo = new JComboBox<>();
         for (Patient p : patientRepository.getAll()) {
             patientCombo.addItem(p.getPatientId() + " - " + p.getFullName());
         }
         
-        // Clinician dropdown
         JComboBox<String> clinicianCombo = new JComboBox<>();
         for (Clinician c : clinicianRepository.getAll()) {
             clinicianCombo.addItem(c.getClinicianId() + " - " + c.getFullName());
         }
         
-        // Facility dropdown
         JComboBox<String> facilityCombo = new JComboBox<>();
         if (facilityRepository != null) {
             for (Facility f : facilityRepository.getAll()) {
@@ -261,13 +227,11 @@ public class AppointmentController {
             }
         }
         
-        // Form fields
         JTextField dateField = new JTextField(20);
         JTextField timeField = new JTextField(20);
         JTextField reasonField = new JTextField(25);
         JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Scheduled", "Completed", "Cancelled", "No Show"});
         
-        // Layout form fields using GridBagLayout
         int row = 0;
         
         gbc.gridx = 0; gbc.gridy = row;
@@ -359,7 +323,6 @@ public class AppointmentController {
         dialog.setVisible(true);
     }
     
-    // Edit appointment - allows editing all fields
     private void editAppointment() {
         String appointmentId = view.getSelectedAppointmentId();
         if (appointmentId == null) {
@@ -381,7 +344,6 @@ public class AppointmentController {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
-        // Patient dropdown
         JComboBox<String> patientCombo = new JComboBox<>();
         String currentPatientId = appointment.getPatientId();
         for (Patient p : patientRepository.getAll()) {
@@ -391,7 +353,6 @@ public class AppointmentController {
             }
         }
         
-        // Clinician dropdown
         JComboBox<String> clinicianCombo = new JComboBox<>();
         String currentClinicianId = appointment.getClinicianId();
         for (Clinician c : clinicianRepository.getAll()) {
@@ -401,7 +362,6 @@ public class AppointmentController {
             }
         }
         
-        // Facility dropdown
         JComboBox<String> facilityCombo = new JComboBox<>();
         String currentFacilityId = appointment.getFacilityId();
         if (facilityRepository != null) {
@@ -413,14 +373,12 @@ public class AppointmentController {
             }
         }
         
-        // Form fields pre-filled with current values
         JTextField dateField = new JTextField(appointment.getAppointmentDate(), 20);
         JTextField timeField = new JTextField(appointment.getAppointmentTime(), 20);
         JTextField reasonField = new JTextField(appointment.getReasonForVisit(), 25);
         JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Scheduled", "Completed", "Cancelled", "No Show"});
         statusCombo.setSelectedItem(appointment.getStatus());
         
-        // Layout form fields
         int row = 0;
         
         gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
@@ -505,7 +463,6 @@ public class AppointmentController {
         dialog.setVisible(true);
     }
     
-    // Cancel appointment with confirmation
     private void cancelAppointment() {
         String appointmentId = view.getSelectedAppointmentId();
         if (appointmentId == null) {
@@ -527,7 +484,6 @@ public class AppointmentController {
         }
     }
     
-    // Public method to refresh appointments table (for external use)
     public void refreshAppointments() {
         refreshAppointmentsTable();
     }
