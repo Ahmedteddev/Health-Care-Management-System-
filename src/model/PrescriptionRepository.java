@@ -2,6 +2,11 @@ package model;
 
 import util.CsvUtils;
 import java.io.IOException;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class PrescriptionRepository {
@@ -62,6 +67,25 @@ public class PrescriptionRepository {
 
     public List<Prescription> getAll() {
         return prescriptions;
+    }
+    
+    /**
+     * Gets all prescriptions for a specific patient ID.
+     * 
+     * @param patientId The patient ID (e.g., "P001")
+     * @return List of prescriptions for the patient
+     */
+    public List<Prescription> getByPatientId(String patientId) {
+        List<Prescription> result = new ArrayList<>();
+        if (patientId == null || patientId.isEmpty()) {
+            return result;
+        }
+        for (Prescription prescription : prescriptions) {
+            if (patientId.equals(prescription.getPatientId())) {
+                result.add(prescription);
+            }
+        }
+        return result;
     }
 
     // ============================================================
@@ -130,6 +154,50 @@ public class PrescriptionRepository {
 
         } catch (IOException ex) {
             System.err.println("Failed to append prescription: " + ex.getMessage());
+        }
+    }
+    
+    // ============================================================
+    // GENERATE PRESCRIPTION .TXT FILE
+    // ============================================================
+    // Method to generate prescription file with practitioner details
+    // Saves to src/data/prescription folder (similar to referrals)
+    public void generatePrescriptionFile(Prescription p, String practitionerName, String practitionerId) {
+        // Create prescription directory in data folder if it doesn't exist
+        File prescriptionDir = new File("src/data/prescription");
+        if (!prescriptionDir.exists()) {
+            prescriptionDir.mkdirs(); // Use mkdirs() to create parent directories if needed
+        }
+        
+        // Format date for filename
+        String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String filename = "prescription_" + p.getPatientId() + "_" + dateStr + ".txt";
+        
+        File prescriptionFile = new File(prescriptionDir, filename);
+        
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(prescriptionFile))) {
+            writer.write("PRESCRIPTION");
+            writer.newLine();
+            writer.write("Date: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            writer.newLine();
+            writer.write("Practitioner: " + (practitionerName != null ? practitionerName : ""));
+            writer.newLine();
+            writer.write("Patient ID: " + p.getPatientId());
+            writer.newLine();
+            writer.write("Medication: " + (p.getMedication() != null ? p.getMedication() : ""));
+            writer.newLine();
+            writer.write("Dosage: " + (p.getDosage() != null ? p.getDosage() : ""));
+            writer.newLine();
+            writer.write("Notes: " + (p.getInstructions() != null ? p.getInstructions() : ""));
+            writer.newLine();
+            writer.newLine();
+            writer.write("Digitally signed by the practitioner.");
+            writer.newLine();
+            
+            System.out.println("Prescription file generated: " + prescriptionFile.getAbsolutePath());
+            
+        } catch (IOException ex) {
+            System.err.println("Failed to generate prescription file: " + ex.getMessage());
         }
     }
 

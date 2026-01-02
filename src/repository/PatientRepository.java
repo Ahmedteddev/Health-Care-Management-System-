@@ -92,8 +92,9 @@ public class PatientRepository {
     
     /**
      * Finds a patient by their ID.
+     * Uses .trim() on ID lookups to prevent issues with hidden spaces in the CSV.
      * 
-     * @param id The patient ID to search for
+     * @param id The patient ID to search for (e.g., "P001")
      * @return The Patient object if found, null otherwise
      */
     public Patient findById(String id) {
@@ -101,8 +102,13 @@ public class PatientRepository {
             return null;
         }
         
+        // Use trim() on ID lookup to prevent issues with hidden spaces
+        String trimmedId = id.trim();
+        
         for (Patient patient : patients) {
-            if (id.equals(patient.getPatientId()) || id.equals(patient.getId())) {
+            String patientId = patient.getPatientId() != null ? patient.getPatientId().trim() : "";
+            String patientIdAlt = patient.getId() != null ? patient.getId().trim() : "";
+            if (trimmedId.equals(patientId) || trimmedId.equals(patientIdAlt)) {
                 return patient;
             }
         }
@@ -111,6 +117,7 @@ public class PatientRepository {
     
     /**
      * Adds a new patient to the repository and appends it to the CSV file.
+     * Ensures the P001 format is strictly maintained for all new entries.
      * 
      * @param patient The Patient object to add
      */
@@ -120,32 +127,40 @@ public class PatientRepository {
             return;
         }
         
-        // Check if patient already exists
-        if (findById(patient.getPatientId()) != null) {
-            System.err.println("Patient with ID " + patient.getPatientId() + " already exists.");
+        // Ensure P001 format is strictly maintained
+        String patientId = patient.getPatientId() != null ? patient.getPatientId().trim() : "";
+        if (!patientId.matches("^P\\d{3}$")) {
+            System.err.println("Invalid patient ID format. Must be P001, P002, etc. Got: " + patientId);
+            return;
+        }
+        patient.setPatientId(patientId);
+        
+        // Check if patient already exists (use trim() on lookup)
+        if (findById(patientId) != null) {
+            System.err.println("Patient with ID " + patientId + " already exists.");
             return;
         }
         
         // Add to in-memory list
         patients.add(patient);
         
-        // Append to CSV file
+        // Append to CSV file using the P001,Name,DOB... format
         try {
             String[] rowData = {
                 patient.getPatientId(),
-                patient.getFirstName(),
-                patient.getLastName(),
-                patient.getDateOfBirth(),
-                patient.getNhsNumber(),
-                patient.getGender(),
-                patient.getPhoneNumber(),
-                patient.getEmail(),
-                patient.getAddress(),
-                patient.getPostcode(),
-                patient.getEmergencyContactName(),
-                patient.getEmergencyContactPhone(),
-                patient.getRegistrationDate(),
-                patient.getGpSurgeryId()
+                patient.getFirstName() != null ? patient.getFirstName() : "",
+                patient.getLastName() != null ? patient.getLastName() : "",
+                patient.getDateOfBirth() != null ? patient.getDateOfBirth() : "",
+                patient.getNhsNumber() != null ? patient.getNhsNumber() : "",
+                patient.getGender() != null ? patient.getGender() : "",
+                patient.getPhoneNumber() != null ? patient.getPhoneNumber() : "",
+                patient.getEmail() != null ? patient.getEmail() : "",
+                patient.getAddress() != null ? patient.getAddress() : "",
+                patient.getPostcode() != null ? patient.getPostcode() : "",
+                patient.getEmergencyContactName() != null ? patient.getEmergencyContactName() : "",
+                patient.getEmergencyContactPhone() != null ? patient.getEmergencyContactPhone() : "",
+                patient.getRegistrationDate() != null ? patient.getRegistrationDate() : "",
+                patient.getGpSurgeryId() != null ? patient.getGpSurgeryId() : ""
             };
             
             CsvUtils.appendLine(csvPath, rowData);
@@ -198,7 +213,19 @@ public class PatientRepository {
     }
     
     /**
+     * Adds a new patient and saves to CSV.
+     * Alias for add() method - ensures addAndSave() method exists.
+     * 
+     * @param patient The Patient object to add
+     */
+    public void addAndSave(Patient patient) {
+        add(patient);
+    }
+    
+    /**
      * Updates an existing patient in the repository and saves to CSV.
+     * Finds the existing ID in the CSV and replaces that line with the new data.
+     * Uses .trim() on ID lookups to prevent issues with hidden spaces.
      * 
      * @param patient The updated Patient object
      */
@@ -208,18 +235,33 @@ public class PatientRepository {
             return;
         }
         
-        // Find and update the patient in the list
+        // Use trim() on ID lookup to prevent issues with hidden spaces
+        String patientId = patient.getPatientId() != null ? patient.getPatientId().trim() : "";
+        if (patientId.isEmpty()) {
+            System.err.println("Cannot update patient with empty ID.");
+            return;
+        }
+        
+        // Ensure P001 format is strictly maintained
+        if (!patientId.matches("^P\\d{3}$")) {
+            System.err.println("Invalid patient ID format. Must be P001, P002, etc. Got: " + patientId);
+            return;
+        }
+        patient.setPatientId(patientId);
+        
+        // Find and update the patient in the list (use trim() on comparison)
         for (int i = 0; i < patients.size(); i++) {
-            if (patients.get(i).getPatientId().equals(patient.getPatientId())) {
+            String existingId = patients.get(i).getPatientId() != null ? patients.get(i).getPatientId().trim() : "";
+            if (patientId.equals(existingId)) {
                 patients.set(i, patient);
-                // Save all to CSV
+                // Save all to CSV - this replaces the existing line with new data
                 saveAll();
-                System.out.println("Successfully updated patient " + patient.getPatientId());
+                System.out.println("Successfully updated patient " + patientId);
                 return;
             }
         }
         
-        System.err.println("Patient with ID " + patient.getPatientId() + " not found for update.");
+        System.err.println("Patient with ID " + patientId + " not found for update.");
     }
     
     /**

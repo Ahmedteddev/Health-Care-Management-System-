@@ -18,8 +18,7 @@ public class MedicalRecordPanel extends JPanel {
     private JLabel genderLabel;
     private JLabel bloodTypeLabel;
     
-    // Tabbed pane with tables
-    private JTabbedPane tabbedPane;
+    // Tables
     private JTable encountersTable;
     private DefaultTableModel encountersTableModel;
     private JTable medicationsTable;
@@ -92,9 +91,6 @@ public class MedicalRecordPanel extends JPanel {
         referralsTable = new JTable(referralsTableModel);
         referralsTable.setRowHeight(25);
         
-        // Tabbed pane
-        tabbedPane = new JTabbedPane();
-        
         // Action buttons
         issuePrescriptionButton = new JButton("Issue New Prescription");
         issuePrescriptionButton.setEnabled(false);
@@ -111,55 +107,16 @@ public class MedicalRecordPanel extends JPanel {
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
         
         // Heading
-        JPanel headingPanel = createHeadingPanel();
-        topPanel.add(headingPanel);
-        topPanel.add(Box.createVerticalStrut(10));
-        
-        // Search panel
-        JPanel searchPanel = createSearchPanel();
-        topPanel.add(searchPanel);
-        
-        add(topPanel, BorderLayout.NORTH);
-        
-        // Middle: Summary panel
-        JPanel summaryPanel = createSummaryPanel();
-        add(summaryPanel, BorderLayout.CENTER);
-        
-        // Bottom: Tabbed pane and action button
-        JPanel bottomPanel = new JPanel(new BorderLayout(10, 10));
-        
-        // Tabbed pane with tables
-        JScrollPane encountersScrollPane = new JScrollPane(encountersTable);
-        JScrollPane medicationsScrollPane = new JScrollPane(medicationsTable);
-        JScrollPane referralsScrollPane = new JScrollPane(referralsTable);
-        
-        tabbedPane.addTab("Encounters", encountersScrollPane);
-        tabbedPane.addTab("Medications", medicationsScrollPane);
-        tabbedPane.addTab("Referrals", referralsScrollPane);
-        
-        bottomPanel.add(tabbedPane, BorderLayout.CENTER);
-        
-        // Action button panel
-        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
-        actionPanel.add(issuePrescriptionButton);
-        actionPanel.add(generateReferralButton);
-        bottomPanel.add(actionPanel, BorderLayout.SOUTH);
-        
-        add(bottomPanel, BorderLayout.SOUTH);
-    }
-    
-    private JPanel createHeadingPanel() {
         JPanel headingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
         JLabel headingLabel = new JLabel("Patients Medical Record");
         headingLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
         headingPanel.add(headingLabel);
-        return headingPanel;
-    }
-    
-    private JPanel createSearchPanel() {
+        topPanel.add(headingPanel);
+        topPanel.add(Box.createVerticalStrut(10));
+        
+        // Search panel
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         searchPanel.setBorder(BorderFactory.createTitledBorder("Patient Search"));
-        
         searchPanel.add(new JLabel("Patient ID:"));
         searchPanel.add(patientIdField);
         searchPanel.add(new JLabel("Name:"));
@@ -167,43 +124,77 @@ public class MedicalRecordPanel extends JPanel {
         searchPanel.add(new JLabel("NHS Number:"));
         searchPanel.add(nhsNumberField);
         searchPanel.add(searchButton);
+        topPanel.add(searchPanel);
         
-        return searchPanel;
-    }
-    
-    private JPanel createSummaryPanel() {
+        add(topPanel, BorderLayout.NORTH);
+        
+        // Main content panel with vertical stacked sections
+        JPanel mainContent = new JPanel();
+        mainContent.setLayout(new BoxLayout(mainContent, BoxLayout.Y_AXIS));
+        
+        // Summary panel
         JPanel summaryPanel = new JPanel(new GridBagLayout());
         summaryPanel.setBorder(BorderFactory.createTitledBorder("Patient Summary"));
-        
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 10, 5, 10);
         gbc.anchor = GridBagConstraints.WEST;
-        
-        // Patient Name
         gbc.gridx = 0; gbc.gridy = 0;
         summaryPanel.add(new JLabel("Patient Name:"), gbc);
         gbc.gridx = 1;
         summaryPanel.add(patientNameLabel, gbc);
-        
-        // Date of Birth
         gbc.gridx = 0; gbc.gridy = 1;
         summaryPanel.add(new JLabel("Date of Birth:"), gbc);
         gbc.gridx = 1;
         summaryPanel.add(dobLabel, gbc);
-        
-        // Gender
         gbc.gridx = 0; gbc.gridy = 2;
         summaryPanel.add(new JLabel("Gender:"), gbc);
         gbc.gridx = 1;
         summaryPanel.add(genderLabel, gbc);
-        
-        // Blood Type (placeholder - not in CSV, showing N/A)
         gbc.gridx = 0; gbc.gridy = 3;
         summaryPanel.add(new JLabel("Blood Type:"), gbc);
         gbc.gridx = 1;
         summaryPanel.add(bloodTypeLabel, gbc);
+        mainContent.add(summaryPanel);
+        mainContent.add(Box.createVerticalStrut(15));
         
-        return summaryPanel;
+        // Block 1: Encounters
+        JPanel encountersBlock = new JPanel(new BorderLayout(10, 10));
+        encountersBlock.setBorder(BorderFactory.createTitledBorder("Encounters"));
+        JScrollPane encountersScrollPane = new JScrollPane(encountersTable);
+        encountersScrollPane.setPreferredSize(new Dimension(0, 150));
+        encountersBlock.add(encountersScrollPane, BorderLayout.CENTER);
+        mainContent.add(encountersBlock);
+        mainContent.add(Box.createVerticalStrut(15));
+        
+        // Block 2: Referrals
+        JPanel referralsBlock = new JPanel(new BorderLayout(10, 10));
+        referralsBlock.setBorder(BorderFactory.createTitledBorder("Referrals"));
+        JScrollPane referralsScrollPane = new JScrollPane(referralsTable);
+        referralsScrollPane.setPreferredSize(new Dimension(0, 150));
+        referralsBlock.add(referralsScrollPane, BorderLayout.CENTER);
+        JPanel referralButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        referralButtonPanel.add(generateReferralButton);
+        referralsBlock.add(referralButtonPanel, BorderLayout.SOUTH);
+        mainContent.add(referralsBlock);
+        mainContent.add(Box.createVerticalStrut(15));
+        
+        // Block 3: Prescriptions
+        JPanel prescriptionsBlock = new JPanel(new BorderLayout(10, 10));
+        prescriptionsBlock.setBorder(BorderFactory.createTitledBorder("Prescriptions"));
+        JScrollPane medicationsScrollPane = new JScrollPane(medicationsTable);
+        medicationsScrollPane.setPreferredSize(new Dimension(0, 150));
+        prescriptionsBlock.add(medicationsScrollPane, BorderLayout.CENTER);
+        JPanel prescriptionButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        prescriptionButtonPanel.add(issuePrescriptionButton);
+        prescriptionsBlock.add(prescriptionButtonPanel, BorderLayout.SOUTH);
+        mainContent.add(prescriptionsBlock);
+        
+        // Wrap main content in scroll pane
+        JScrollPane scrollPane = new JScrollPane(mainContent);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        add(scrollPane, BorderLayout.CENTER);
     }
     
     // Getters for search fields
@@ -294,4 +285,3 @@ public class MedicalRecordPanel extends JPanel {
         return generateReferralButton;
     }
 }
-

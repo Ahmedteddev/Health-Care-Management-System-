@@ -1,6 +1,6 @@
 REFERRAL LETTER
 Date: 02/01/2026
-TO: Cardiology Department
+TO:  Department
 FACILITY: 
 RE: John Smith
 DOB: 1985-03-15
@@ -10,10 +10,9 @@ Dear Consultant,
 
 I am referring this patient for further investigation regarding:
 
-poop in heart
+LIL DIDDY
 
 Urgency: Routine
 
 Sincerely,
 GP Dr. David Thompson
-Birmingham Central GP Surgery

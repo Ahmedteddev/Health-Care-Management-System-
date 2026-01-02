@@ -229,6 +229,13 @@ public class PatientFormDialog extends JDialog {
     public void setSaved(boolean saved) {
         this.saved = saved;
     }
+    
+    /**
+     * Alias for isSaved() for compatibility with controller code.
+     */
+    public boolean isConfirmed() {
+        return saved;
+    }
 }
 
 

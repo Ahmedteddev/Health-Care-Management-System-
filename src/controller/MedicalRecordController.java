@@ -21,7 +21,6 @@ public class MedicalRecordController {
     private final ClinicianRepository clinicianRepository;
     private final FacilityRepository facilityRepository;
     private final ReferralRepository referralRepo;
-    private final Clinician currentClinician;
     
     private Patient currentPatient = null;
     
@@ -30,8 +29,7 @@ public class MedicalRecordController {
                                   AppointmentRepository appointmentRepository,
                                   PrescriptionRepository prescriptionRepository,
                                   ClinicianRepository clinicianRepository,
-                                  FacilityRepository facilityRepository,
-                                  Clinician currentClinician) {
+                                  FacilityRepository facilityRepository) {
         this.view = view;
         this.patientRepository = patientRepository;
         this.appointmentRepository = appointmentRepository;
@@ -39,7 +37,6 @@ public class MedicalRecordController {
         this.clinicianRepository = clinicianRepository;
         this.facilityRepository = facilityRepository;
         this.referralRepo = ReferralRepository.getInstance("src/data/referrals.csv");
-        this.currentClinician = currentClinician;
         
         bind();
     }
@@ -148,31 +145,36 @@ public class MedicalRecordController {
         JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view);
         NewPrescriptionDialog dialog = new NewPrescriptionDialog(
             parentFrame,
-            currentPatient,
-            currentClinician
+            currentPatient
         );
         
-        dialog.setContextInfo(currentPatient.getFullName(), currentClinician.getFullName());
-        
         dialog.getConfirmButton().addActionListener(e -> {
+            // Pull all fields from dialog including the manual clinicianId
             String medication = dialog.getMedication();
             String dosage = dialog.getDosage();
             String frequency = dialog.getFrequency();
             String duration = dialog.getDuration();
             String instructions = dialog.getInstructions();
+            String clinicianId = dialog.getClinicianId(); // Manually entered ID from text field
             
             if (medication.isEmpty() || dosage.isEmpty() || frequency.isEmpty() || duration.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "Please fill in all required fields.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
+            if (clinicianId.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Please fill in Clinician ID.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
             String prescriptionId = prescriptionRepository.generateNewId();
             String today = java.time.LocalDate.now().toString();
             
+            // Create Prescription using the manually entered clinicianId from the dialog
             Prescription newPrescription = new Prescription(
                 prescriptionId,
                 currentPatient.getPatientId(),
-                currentClinician.getClinicianId(),
+                clinicianId, // Using ID from user input in text field
                 "",
                 today,
                 medication,
@@ -187,7 +189,15 @@ public class MedicalRecordController {
                 ""
             );
             
+            // Pass all fields to addAndAppend
             prescriptionRepository.addAndAppend(newPrescription);
+            
+            // Call generatePrescriptionFile using the manually entered ID
+            // Look up clinician name for display purposes, but use the manually entered ID
+            Clinician clinician = clinicianRepository.findById(clinicianId);
+            String clinicianName = clinician != null ? clinician.getFullName() : clinicianId;
+            prescriptionRepository.generatePrescriptionFile(newPrescription, clinicianName, clinicianId);
+            
             loadMedications(currentPatient.getPatientId());
             
             dialog.dispose();
@@ -237,54 +247,44 @@ public class MedicalRecordController {
         JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view);
         NewReferralDialog dialog = new NewReferralDialog(
             parentFrame,
-            currentPatient,
-            currentClinician
+            currentPatient
         );
         
-        dialog.setContextInfo(currentPatient.getFullName(), currentClinician.getFullName());
-        
         dialog.getConfirmButton().addActionListener(e -> {
-            String targetSpecialty = dialog.getTargetSpecialty();
-            String targetFacility = dialog.getTargetFacility();
+            // Pull all fields from dialog including referring_clinician_id and referred_to_clinician_id
             String urgency = dialog.getUrgency();
+            String referralReason = dialog.getReferralReason();
             String clinicalSummary = dialog.getClinicalSummary();
+            String requestedInvestigations = dialog.getRequestedInvestigations();
+            String referringClinicianId = dialog.getReferringClinicianId(); // Manually entered ID from text field
+            String referredToClinicianId = dialog.getReferredToClinicianId(); // Manually entered ID from text field
             
-            if (targetFacility.isEmpty() || clinicalSummary.isEmpty()) {
+            if (clinicalSummary.isEmpty() || referralReason.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "Please fill in all required fields.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            String referredToClinicianId = "";
-            for (Clinician c : clinicianRepository.getAll()) {
-                if (targetSpecialty.equals(c.getSpeciality())) {
-                    referredToClinicianId = c.getClinicianId();
-                    break;
-                }
-            }
-            
-            String referredToFacilityId = "";
-            for (Facility f : facilityRepository.getAll()) {
-                if (targetFacility.equals(f.getFacilityName())) {
-                    referredToFacilityId = f.getFacilityId();
-                    break;
-                }
+            if (referringClinicianId.isEmpty() || referredToClinicianId.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Please fill in both Referring Clinician ID and Referred To Clinician ID.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
             
             String referralId = referralRepo.generateNewId();
             String today = LocalDate.now().toString();
             
+            // Create Referral using the manually entered clinician IDs from the dialog
             Referral newReferral = new Referral(
                 referralId,
                 currentPatient.getPatientId(),
-                currentClinician.getClinicianId(),
-                referredToClinicianId,
-                currentClinician.getWorkplaceId() != null ? currentClinician.getWorkplaceId() : "",
-                referredToFacilityId,
+                referringClinicianId, // Using ID from user input in text field
+                referredToClinicianId, // Using ID from user input in text field
+                "",
+                "",
                 today,
                 urgency,
-                "Referral for " + targetSpecialty,
+                referralReason,
                 clinicalSummary,
-                targetSpecialty,
+                requestedInvestigations,
                 "Pending",
                 "",
                 "",
@@ -292,8 +292,13 @@ public class MedicalRecordController {
                 today
             );
             
+            // Pass all fields including clinician IDs to addAndAppend
             referralRepo.addAndAppend(newReferral);
-            generateReferralLetter(newReferral);
+            
+            // Get referring clinician name for letter (for display purposes only)
+            Clinician referringClinician = clinicianRepository.findById(referringClinicianId);
+            String referringClinicianName = referringClinician != null ? referringClinician.getFullName() : referringClinicianId;
+            generateReferralLetter(newReferral, referringClinicianName);
             loadReferrals(currentPatient.getPatientId());
             
             dialog.dispose();
@@ -306,9 +311,8 @@ public class MedicalRecordController {
     }
     
     // generates a text file for the referral letter - saves it to the referrals folder
-    private void generateReferralLetter(Referral referral) {
+    private void generateReferralLetter(Referral referral, String practitionerName) {
         Patient patient = patientRepository.findById(referral.getPatientId());
-        Facility referringFacility = facilityRepository.findById(referral.getReferringFacilityId());
         Facility referredToFacility = facilityRepository.findById(referral.getReferredToFacilityId());
         
         if (patient == null) {
@@ -345,10 +349,7 @@ public class MedicalRecordController {
             writer.println("Urgency: " + referral.getUrgencyLevel());
             writer.println();
             writer.println("Sincerely,");
-            writer.println(currentClinician.getFullName());
-            if (referringFacility != null) {
-                writer.println(referringFacility.getFacilityName());
-            }
+            writer.println(practitionerName != null ? practitionerName : "");
             
             System.out.println("Referral letter generated: " + letterFile.getAbsolutePath());
             

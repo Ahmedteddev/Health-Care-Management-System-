@@ -124,6 +124,25 @@ public class AppointmentRepository {
     }
     
     /**
+     * Gets all appointments for a specific patient ID.
+     * 
+     * @param patientId The patient ID (e.g., "P001")
+     * @return List of appointments for the patient
+     */
+    public List<Appointment> getByPatientId(String patientId) {
+        List<Appointment> result = new ArrayList<>();
+        if (patientId == null || patientId.isEmpty()) {
+            return result;
+        }
+        for (Appointment appointment : appointments) {
+            if (patientId.equals(appointment.getPatientId())) {
+                result.add(appointment);
+            }
+        }
+        return result;
+    }
+    
+    /**
      * Deletes all appointments for a specific patient.
      * Alias method to match user's method name requirement.
      * 

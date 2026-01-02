@@ -1,6 +1,5 @@
 package view;
 
-import model.Clinician;
 import model.Patient;
 import javax.swing.*;
 import java.awt.*;
@@ -12,25 +11,26 @@ public class NewPrescriptionDialog extends JDialog {
     private JTextField frequencyField;
     private JTextField durationField;
     private JTextArea instructionsArea;
+    private JTextField clinicianIdField;
     private JButton confirmButton;
     private JButton cancelButton;
     private JLabel patientLabel;
-    private JLabel clinicianLabel;
     
     private boolean confirmed = false;
     
-    public NewPrescriptionDialog(JFrame parent, Patient patient, Clinician clinician) {
+    // Constructor: No Clinician object - only takes parent frame
+    public NewPrescriptionDialog(JFrame parent, Patient patient) {
         super(parent, "Issue New Prescription", true);
         
-        initializeComponents(patient, clinician);
-        setupLayout();
+        initializeComponents();
+        setupLayout(patient);
         
         setMinimumSize(new Dimension(500, 400));
         pack();
         setLocationRelativeTo(parent);
     }
     
-    private void initializeComponents(Patient patient, Clinician clinician) {
+    private void initializeComponents() {
         // Form fields
         medicationField = new JTextField(25);
         dosageField = new JTextField(25);
@@ -39,18 +39,19 @@ public class NewPrescriptionDialog extends JDialog {
         instructionsArea = new JTextArea(5, 25);
         instructionsArea.setLineWrap(true);
         instructionsArea.setWrapStyleWord(true);
+        clinicianIdField = new JTextField(25);
         
         // Buttons
         confirmButton = new JButton("Confirm");
         cancelButton = new JButton("Cancel");
     }
     
-    private void setupLayout() {
+    private void setupLayout(Patient patient) {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
-        // Top: Read-only patient and clinician info
-        JPanel infoPanel = createInfoPanel();
+        // Top: Read-only patient info
+        JPanel infoPanel = createInfoPanel(patient);
         mainPanel.add(infoPanel, BorderLayout.NORTH);
         
         // Center: Form fields
@@ -66,7 +67,7 @@ public class NewPrescriptionDialog extends JDialog {
         add(mainPanel);
     }
     
-    private JPanel createInfoPanel() {
+    private JPanel createInfoPanel(Patient patient) {
         JPanel infoPanel = new JPanel(new GridBagLayout());
         infoPanel.setBorder(BorderFactory.createTitledBorder("Context"));
         
@@ -74,14 +75,10 @@ public class NewPrescriptionDialog extends JDialog {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.WEST;
         
-        // Create labels that will be updated by controller
-        patientLabel = new JLabel("Patient: [Will be set]");
-        clinicianLabel = new JLabel("Clinician: [Will be set]");
+        patientLabel = new JLabel("Patient: " + (patient != null ? patient.getFullName() : ""));
         
         gbc.gridx = 0; gbc.gridy = 0;
         infoPanel.add(patientLabel, gbc);
-        gbc.gridx = 0; gbc.gridy = 1;
-        infoPanel.add(clinicianLabel, gbc);
         
         return infoPanel;
     }
@@ -118,9 +115,9 @@ public class NewPrescriptionDialog extends JDialog {
         formPanel.add(frequencyField, gbc);
         
         row++;
-        // Duration
+        // Duration (Days)
         gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        formPanel.add(new JLabel("Duration (days):"), gbc);
+        formPanel.add(new JLabel("Duration (Days):"), gbc);
         gbc.gridx = 1; gbc.weightx = 1.0;
         formPanel.add(durationField, gbc);
         
@@ -134,17 +131,16 @@ public class NewPrescriptionDialog extends JDialog {
         JScrollPane instructionsScroll = new JScrollPane(instructionsArea);
         formPanel.add(instructionsScroll, gbc);
         
+        row++;
+        // Clinician ID
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0; gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        formPanel.add(new JLabel("Clinician ID:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        formPanel.add(clinicianIdField, gbc);
+        
         return formPanel;
-    }
-    
-    // Method to set patient and clinician info
-    public void setContextInfo(String patientName, String clinicianName) {
-        if (patientLabel != null) {
-            patientLabel.setText("Patient: " + patientName);
-        }
-        if (clinicianLabel != null) {
-            clinicianLabel.setText("Clinician: " + clinicianName);
-        }
     }
     
     // Getters for form data
@@ -168,6 +164,11 @@ public class NewPrescriptionDialog extends JDialog {
         return instructionsArea.getText().trim();
     }
     
+    // Method: Get Clinician ID from text field (manually entered by user)
+    public String getClinicianId() {
+        return clinicianIdField.getText().trim();
+    }
+    
     // Button getters
     public JButton getConfirmButton() {
         return confirmButton;
@@ -185,4 +186,3 @@ public class NewPrescriptionDialog extends JDialog {
         this.confirmed = confirmed;
     }
 }
-

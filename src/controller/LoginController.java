@@ -5,8 +5,12 @@ import repository.PatientRepository;
 import repository.ReferralRepository;
 import repository.StaffRepository;
 import view.LoginView;
-import view.GPDashboard;
-import view.PatientDashboardFrame;
+import view.NavigationCard;
+import view.MedicalRecordPanel;
+import view.PatientManagementPanel;
+import view.PatientDashboardPanel;
+import view.StaffManagementPanel;
+import view.AppointmentPanel;
 import javax.swing.*;
 
 public class LoginController {
@@ -46,200 +50,182 @@ public class LoginController {
     }
     
     private void handleLogin() {
-        String username = view.getUsername();
+        String username = view.getUsername().trim();
         String password = view.getPassword();
         
         if (username.isEmpty() || password.isEmpty()) {
-            view.setStatusMessage("Please enter both username and password.");
+            JOptionPane.showMessageDialog(view, "Please enter both username and password.", "Login Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        // using universal password for testing - all accounts use "12345"
+        // Hard-coded password for everyone
         if (!password.equals("12345")) {
-            view.setStatusMessage("Invalid password. Use '12345' for testing.");
+            System.out.println("Login Failed: Invalid password");
+            JOptionPane.showMessageDialog(view, "Invalid password. Use '12345' for testing.", "Login Failed", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        Staff staff = findStaffByUsername(username);
-        if (staff != null) {
-            String role = identifyRole(staff);
-            launchStaffDashboard(staff, role);
-            view.dispose();
-            return;
-        }
+        // Determine role based on username - take the username string exactly as typed
+        String role = null;
+        String patientId = null;
         
-        Patient patient = findPatientByUsername(username);
-        if (patient != null) {
-            launchPatientDashboard(patient.getPatientId());
-            view.dispose();
-            return;
-        }
-        
-        view.setStatusMessage("Invalid username or password.");
-        view.clearFields();
-    }
-    
-    // figures out what role the user is based on their title/role field - had to check a few different places
-    private String identifyRole(Staff staff) {
-        String role = staff.getRole();
-        if ("Developer".equalsIgnoreCase(role) || "DEV001".equalsIgnoreCase(staff.getStaffId())) {
-            return "Developer";
-        }
-        
-        if (staff instanceof Clinician) {
-            Clinician clinician = (Clinician) staff;
-            String title = clinician.getTitle();
-            String speciality = clinician.getSpeciality();
-            
-            if (title != null && title.toLowerCase().contains("nurse")) {
-                return "Nurse";
-            } else if (speciality != null && (speciality.toLowerCase().contains("specialist") || 
-                                               speciality.toLowerCase().contains("consultant"))) {
-                return "Specialist";
-            } else if (title != null && title.equalsIgnoreCase("GP")) {
-                return "GP";
-            } else {
-                return "GP";
-            }
-        }
-        
-        if (role != null) {
-            String roleLower = role.toLowerCase();
-            if (roleLower.contains("admin") || roleLower.contains("administrator") || 
-                roleLower.contains("manager") && roleLower.contains("practice")) {
-                return "Admin";
-            } else if (roleLower.contains("receptionist")) {
-                return "Receptionist";
-            } else if (roleLower.contains("nurse")) {
-                return "Nurse";
-            } else if (roleLower.contains("gp") || roleLower.contains("general practitioner")) {
-                return "GP";
-            } else if (roleLower.contains("specialist") || roleLower.contains("consultant")) {
-                return "Specialist";
-            }
-        }
-        
-        return role != null ? role : "Staff";
-    }
-    
-    private Staff findStaffByUsername(String username) {
-        if ("DEV001".equalsIgnoreCase(username)) {
-            return createDeveloperStaff();
-        }
-        
-        for (Staff staff : staffRepository.getAllStaff()) {
-            if (username.equalsIgnoreCase(staff.getStaffId()) || 
-                username.equalsIgnoreCase(staff.getEmail()) ||
-                username.equalsIgnoreCase(staff.getFirstName() + " " + staff.getLastName())) {
-                return staff;
-            }
-        }
-        
-        for (Clinician clinician : clinicianRepository.getAll()) {
-            if (username.equalsIgnoreCase(clinician.getClinicianId()) ||
-                username.equalsIgnoreCase(clinician.getEmail()) ||
-                username.equalsIgnoreCase(clinician.getFullName())) {
-                return clinician;
-            }
-        }
-        
-        return null;
-    }
-    
-    // creates a developer user for testing - gives access to everything
-    private Staff createDeveloperStaff() {
-        Staff developer = new Staff();
-        developer.setStaffId("DEV001");
-        developer.setFirstName("Developer");
-        developer.setLastName("System");
-        developer.setRole("Developer");
-        developer.setEmail("dev@hms.system");
-        developer.setDepartment("IT");
-        developer.setAccessLevel("Super");
-        return developer;
-    }
-    
-    private Patient findPatientByUsername(String username) {
+        // First, check if the username matches a record in PatientRepository (e.g., P001)
         Patient patient = patientRepository.findById(username);
         if (patient != null) {
-            return patient;
-        }
-        
-        for (Patient p : patientRepository.getAll()) {
-            if (username.equalsIgnoreCase(p.getLastName()) ||
-                username.equalsIgnoreCase(p.getEmail())) {
-                return p;
-            }
-        }
-        
-        return null;
-    }
-    
-    private void launchStaffDashboard(Staff staff, String role) {
-        Clinician clinician = null;
-        if (staff instanceof Clinician) {
-            clinician = (Clinician) staff;
+            // If it matches a patient, assign the role "Patient"
+            role = "Patient";
+            patientId = username; // Use exact string (e.g., "P001")
+            System.out.println("Login: Found patient with ID: " + patientId);
         } else {
-            clinician = clinicianRepository.findById(staff.getStaffId());
-        }
-        
-        if (clinician == null) {
-            // fallback to first clinician if not found - needed this for non-clinician staff
-            if (!clinicianRepository.getAll().isEmpty()) {
-                clinician = clinicianRepository.getAll().get(0);
+            // Second, check if the username matches a Clinician ID (e.g., C001)
+            Clinician clinician = clinicianRepository.findById(username);
+            if (clinician != null) {
+                // If it matches a clinician, assign the role "Clinician"
+                role = "Clinician";
+                System.out.println("Login: Found clinician with ID: " + username);
             } else {
-                JOptionPane.showMessageDialog(view, 
-                    "No clinician found. Please contact administrator.", 
-                    "Error", 
-                    JOptionPane.ERROR_MESSAGE);
-                return;
+                // Third, check if it matches a Staff record (e.g., ST001)
+                Staff staff = staffRepository.findStaffById(username);
+                if (staff != null) {
+                    String staffRole = staff.getRole();
+                    if ("Clinician".equalsIgnoreCase(staffRole) || "GP".equalsIgnoreCase(staffRole) || 
+                        "Consultant".equalsIgnoreCase(staffRole) || "Nurse".equalsIgnoreCase(staffRole)) {
+                        role = "Clinician";
+                    } else if ("Practice Manager".equalsIgnoreCase(staffRole) || 
+                               "Hospital Administrator".equalsIgnoreCase(staffRole)) {
+                        role = "Admin";
+                    } else if ("Receptionist".equalsIgnoreCase(staffRole)) {
+                        role = "Receptionist";
+                    } else {
+                        role = "Admin"; // Default for other staff roles
+                    }
+                    System.out.println("Login: Found staff with ID: " + username + ", Role: " + role);
+                } else {
+                    // Finally, check for hardcoded role names (backward compatibility)
+                    if (username.equalsIgnoreCase("Clinician")) {
+                        role = "Clinician";
+                    } else if (username.equalsIgnoreCase("Admin")) {
+                        role = "Admin";
+                    } else if (username.equalsIgnoreCase("Receptionist")) {
+                        role = "Receptionist";
+                    } else if (username.equalsIgnoreCase("Developer")) {
+                        role = "Developer";
+                    } else {
+                        System.out.println("Login Failed: Invalid username - " + username);
+                        JOptionPane.showMessageDialog(view, 
+                            "Invalid username. Accepted formats:\n" +
+                            "- Patient ID: P001, P002, etc.\n" +
+                            "- Clinician ID: C001, C002, etc.\n" +
+                            "- Staff ID: ST001, ST002, etc.\n" +
+                            "- Role names: Clinician, Admin, Receptionist, Developer", 
+                            "Login Failed", 
+                            JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
             }
         }
         
-        GPDashboard dashboard = new GPDashboard(clinician);
+        // Close the login window
+        view.dispose();
         
-        DashboardController dashboardController = new DashboardController(
-            dashboard,
-            appointmentRepository,
-            patientRepository,
-            clinicianRepository,
-            facilityRepository,
-            prescriptionRepository,
-            referralRepository,
-            staffRepository,
-            role
-        );
+        // Launch NavigationCard in a JFrame
+        JFrame frame = new JFrame("Hospital System - " + role);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        NavigationCard navigationCard = new NavigationCard(role);
+        frame.setContentPane(navigationCard); // Ensure this is the content
+        frame.setSize(1200, 800);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
         
-        AppointmentController appointmentController = new AppointmentController(
-            dashboardController.getAppointmentPanel(),
-            appointmentRepository,
-            patientRepository,
-            clinicianRepository,
-            facilityRepository
-        );
+        // Initialize controllers for the panels in NavigationCard
+        // Pass patientId so PatientDashboardPanel can load the correct data
+        initializeControllers(navigationCard, patientId);
         
-        dashboard.setVisible(true);
-        
-        String staffName = staff.getFirstName() + " " + staff.getLastName();
-        System.out.println("Staff Dashboard launched for: " + staffName + " (Role: " + role + ")");
+        System.out.println("NavigationCard launched for role: " + role + (patientId != null ? " (Patient ID: " + patientId + ")" : ""));
     }
     
-    private void launchPatientDashboard(String patientId) {
-        PatientDashboardFrame patientDashboard = new PatientDashboardFrame();
+    /**
+     * Initialize controllers for the panels in NavigationCard based on role.
+     */
+    private void initializeControllers(NavigationCard navigationCard, String patientId) {
+        String role = navigationCard.getRole();
         
-        PatientDashboardController patientController = new PatientDashboardController(
-            patientDashboard,
-            appointmentRepository,
-            prescriptionRepository,
-            patientRepository,
-            clinicianRepository,
-            facilityRepository,
-            patientId
-        );
+        // Initialize MedicalRecordPanel controller (for Clinician and Developer)
+        if ("Clinician".equalsIgnoreCase(role) || "Developer".equalsIgnoreCase(role)) {
+            MedicalRecordPanel medicalPanel = navigationCard.getMedicalRecordPanel();
+            if (medicalPanel != null) {
+                new MedicalRecordController(
+                    medicalPanel,
+                    patientRepository,
+                    appointmentRepository,
+                    prescriptionRepository,
+                    clinicianRepository,
+                    facilityRepository
+                );
+            }
+        }
         
-        patientDashboard.setVisible(true);
+        // Initialize AppointmentPanel controller (for Receptionist, Clinician, and Developer)
+        if ("Receptionist".equalsIgnoreCase(role) || "Clinician".equalsIgnoreCase(role) || "Developer".equalsIgnoreCase(role)) {
+            AppointmentPanel appointmentPanel = navigationCard.getAppointmentPanel();
+            if (appointmentPanel != null) {
+                new AppointmentController(
+                    appointmentPanel,
+                    appointmentRepository,
+                    patientRepository,
+                    clinicianRepository,
+                    facilityRepository
+                );
+            }
+        }
         
-        System.out.println("Patient Dashboard launched for: " + patientId);
+        // Initialize PatientManagementPanel controller (for Admin, Receptionist, Clinician, and Developer)
+        if ("Admin".equalsIgnoreCase(role) || "Receptionist".equalsIgnoreCase(role) || 
+            "Clinician".equalsIgnoreCase(role) || "Developer".equalsIgnoreCase(role)) {
+            PatientManagementPanel patientMgmtPanel = navigationCard.getPatientManagementPanel();
+            if (patientMgmtPanel != null) {
+                new PatientManagementController(
+                    patientMgmtPanel,
+                    patientRepository
+                );
+            }
+        }
+        
+        // Initialize StaffManagementPanel controller (for Admin and Developer)
+        if ("Admin".equalsIgnoreCase(role) || "Developer".equalsIgnoreCase(role)) {
+            StaffManagementPanel staffPanel = navigationCard.getStaffManagementPanel();
+            if (staffPanel != null) {
+                new StaffManagementController(
+                    staffPanel,
+                    staffRepository,
+                    clinicianRepository
+                );
+            }
+        }
+        
+        // Initialize PatientDashboardPanel controller (for Patient and Developer)
+        if ("Patient".equalsIgnoreCase(role) || "Developer".equalsIgnoreCase(role)) {
+            PatientDashboardPanel patientDashPanel = navigationCard.getPatientDashboardPanel();
+            if (patientDashPanel != null) {
+                // For Patient role, use the exact patientId from login (e.g., "P001")
+                if ("Patient".equalsIgnoreCase(role) && patientId != null) {
+                    // Pass the exact string (e.g., "P001") to the controller
+                    System.out.println("Initializing PatientDashboardController with Patient ID: " + patientId);
+                    new PatientDashboardController(
+                        patientDashPanel,
+                        appointmentRepository,
+                        prescriptionRepository,
+                        patientRepository,
+                        clinicianRepository,
+                        facilityRepository,
+                        patientId // Pass exact string
+                    );
+                } else if ("Developer".equalsIgnoreCase(role)) {
+                    // For Developer, just set a placeholder name
+                    patientDashPanel.setPatientName("Developer View");
+                }
+            }
+        }
     }
 }
-
