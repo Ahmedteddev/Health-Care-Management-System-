@@ -127,7 +127,7 @@ public class PatientManagementController {
                 filterPatients();
                 
                 dialog.dispose();
-                JOptionPane.showMessageDialog(view, "Patient registered successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                System.out.println("[Success]: Patient registered successfully!");
             });
             
             dialog.getCancelButton().addActionListener(ev -> dialog.dispose());
@@ -173,7 +173,7 @@ public class PatientManagementController {
                 filterPatients();
                 
                 dialog.dispose();
-                JOptionPane.showMessageDialog(view, "Patient updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                System.out.println("[Success]: Patient updated successfully!");
             });
             
             dialog.getCancelButton().addActionListener(ev -> dialog.dispose());
@@ -209,7 +209,7 @@ public class PatientManagementController {
                     loadPatients();
                     filterPatients();
                     
-                    JOptionPane.showMessageDialog(view, "Patient record deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    System.out.println("[Success]: Patient record deleted successfully.");
                 } else {
                     JOptionPane.showMessageDialog(view, "Patient not found.", "Error", JOptionPane.ERROR_MESSAGE);
                 }

@@ -197,7 +197,7 @@ public class AppointmentController {
             appointmentRepository.updateAppointment(appointment);
             filterAppointments();
             
-            JOptionPane.showMessageDialog(view, "Appointment rescheduled successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            System.out.println("[Success]: Appointment rescheduled successfully!");
         }
     }
     
@@ -311,7 +311,7 @@ public class AppointmentController {
             appointmentRepository.add(newAppt);
             refreshAppointmentsTable();
             dialog.dispose();
-            JOptionPane.showMessageDialog(dialog, "Appointment booked successfully!");
+            System.out.println("[Success]: Appointment booked successfully!");
         });
         
         cancelButton.addActionListener(e -> dialog.dispose());
@@ -451,7 +451,7 @@ public class AppointmentController {
             appointmentRepository.updateAppointment(appointment);
             refreshAppointmentsTable();
             dialog.dispose();
-            JOptionPane.showMessageDialog(dialog, "Appointment updated successfully!");
+            System.out.println("[Success]: Appointment updated successfully!");
         });
         
         cancelButton.addActionListener(e -> dialog.dispose());
@@ -480,7 +480,7 @@ public class AppointmentController {
         if (confirm == JOptionPane.YES_OPTION) {
             appointmentRepository.delete(appointmentId);
             refreshAppointmentsTable();
-            JOptionPane.showMessageDialog(view, "Appointment cancelled successfully!");
+            System.out.println("[Success]: Appointment cancelled successfully!");
         }
     }
     

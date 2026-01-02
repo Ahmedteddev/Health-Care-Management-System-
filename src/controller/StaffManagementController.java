@@ -145,7 +145,7 @@ public class StaffManagementController {
                 filterStaff();
                 
                 dialog.dispose();
-                JOptionPane.showMessageDialog(view, "Staff member added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                System.out.println("[Success]: Staff member added successfully!");
             });
             
             dialog.getCancelButton().addActionListener(ev -> dialog.dispose());
@@ -188,7 +188,7 @@ public class StaffManagementController {
                 filterStaff();
                 
                 dialog.dispose();
-                JOptionPane.showMessageDialog(view, "Clinician added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                System.out.println("[Success]: Clinician added successfully!");
             });
             
             dialog.getCancelButton().addActionListener(ev -> dialog.dispose());
@@ -254,7 +254,7 @@ public class StaffManagementController {
                     filterStaff();
                     
                     dialog.dispose();
-                    JOptionPane.showMessageDialog(view, "Clinician updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    System.out.println("[Success]: Clinician updated successfully!");
                 });
                 
                 dialog.getCancelButton().addActionListener(ev -> dialog.dispose());
@@ -293,7 +293,7 @@ public class StaffManagementController {
                     filterStaff();
                     
                     dialog.dispose();
-                    JOptionPane.showMessageDialog(view, "Staff member updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    System.out.println("[Success]: Staff member updated successfully!");
                 });
                 
                 dialog.getCancelButton().addActionListener(ev -> dialog.dispose());
@@ -351,7 +351,7 @@ public class StaffManagementController {
                 loadStaffTable();
                 filterStaff();
                 
-                JOptionPane.showMessageDialog(view, "Staff member removed successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                System.out.println("[Success]: Staff member removed successfully.");
             }
         }
     }

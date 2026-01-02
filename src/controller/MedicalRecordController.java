@@ -191,7 +191,7 @@ public class MedicalRecordController {
             loadMedications(currentPatient.getPatientId());
             
             dialog.dispose();
-            JOptionPane.showMessageDialog(view, "Prescription issued successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            System.out.println("[Success]: Prescription issued successfully!");
         });
         
         dialog.getCancelButton().addActionListener(e -> dialog.dispose());
@@ -297,7 +297,7 @@ public class MedicalRecordController {
             loadReferrals(currentPatient.getPatientId());
             
             dialog.dispose();
-            JOptionPane.showMessageDialog(view, "Referral generated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            System.out.println("[Success]: Referral generated successfully!");
         });
         
         dialog.getCancelButton().addActionListener(e -> dialog.dispose());
