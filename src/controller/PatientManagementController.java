@@ -1,7 +1,6 @@
 package controller;
 
 import model.*;
-import repository.PatientRepository;
 import view.PatientFormDialog;
 import view.PatientManagementPanel;
 import javax.swing.*;

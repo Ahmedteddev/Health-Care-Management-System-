@@ -29,6 +29,7 @@ public class MedicalRecordPanel extends JPanel {
     // Action buttons
     private JButton issuePrescriptionButton;
     private JButton generateReferralButton;
+    private JButton btnPatientNote;
     
     // Table column names
     private static final String[] ENCOUNTERS_COLUMNS = {
@@ -96,6 +97,8 @@ public class MedicalRecordPanel extends JPanel {
         issuePrescriptionButton.setEnabled(false);
         generateReferralButton = new JButton("Generate New Referral");
         generateReferralButton.setEnabled(false);
+        btnPatientNote = new JButton("View/Edit Patient Clinical Note");
+        btnPatientNote.setEnabled(false);
     }
     
     private void setupLayout() {
@@ -154,6 +157,13 @@ public class MedicalRecordPanel extends JPanel {
         summaryPanel.add(new JLabel("Blood Type:"), gbc);
         gbc.gridx = 1;
         summaryPanel.add(bloodTypeLabel, gbc);
+        gbc.gridx = 0; gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        summaryPanel.add(btnPatientNote, gbc);
+        // Reset constraints for future use
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.WEST;
         mainContent.add(summaryPanel);
         mainContent.add(Box.createVerticalStrut(15));
         
@@ -283,5 +293,14 @@ public class MedicalRecordPanel extends JPanel {
     // Button getters
     public JButton getGenerateReferralButton() {
         return generateReferralButton;
+    }
+    
+    public JButton getBtnPatientNote() {
+        return btnPatientNote;
+    }
+    
+    // Enable/disable patient note button
+    public void setPatientNoteEnabled(boolean enabled) {
+        btnPatientNote.setEnabled(enabled);
     }
 }

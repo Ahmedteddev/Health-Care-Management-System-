@@ -1,9 +1,6 @@
 package controller;
 
-import model.Staff;
-import model.Clinician;
-import repository.StaffRepository;
-import model.ClinicianRepository;
+import model.*;
 import view.StaffFormDialog;
 import view.ClinicianFormDialog;
 import view.StaffManagementPanel;

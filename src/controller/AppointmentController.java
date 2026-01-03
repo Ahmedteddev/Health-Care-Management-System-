@@ -1,7 +1,6 @@
 package controller;
 
 import model.*;
-import repository.PatientRepository;
 import view.AppointmentPanel;
 import javax.swing.*;
 import java.awt.*;

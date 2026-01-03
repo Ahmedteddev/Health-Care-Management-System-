@@ -3,18 +3,21 @@ package view;
 import javax.swing.*;
 import java.awt.*;
 
-/**
- * NavigationCard class handles role-based navigation via CardLayout.
- * Provides a sidebar navigation menu and a center workspace with multiple panels.
- */
+// This class creates the main navigation screen after someone logs in
+// It shows different buttons and panels depending on what role the user has
+// Uses CardLayout which is like having a stack of cards - you can only see one at a time
 public class NavigationCard extends JPanel {
     
-    private final String role;
+    // Store what role the logged-in user has (Patient, Clinician, Admin, etc.)
+    private final String userRole;
+    // CardLayout lets us switch between different panels like switching cards
     private CardLayout cardLayout;
+    // This is the center area where different panels appear
     private JPanel centerPanel;
+    // This is the sidebar on the left with all the navigation buttons
     private JPanel sidebarPanel;
     
-    // Navigation buttons
+    // All the buttons that appear in the sidebar
     private JButton medicalButton;
     private JButton patientMgmtButton;
     private JButton patientDashButton;
@@ -22,38 +25,37 @@ public class NavigationCard extends JPanel {
     private JButton staffButton;
     private JButton logoutButton;
     
-    // Card names
+    // These are the names we use to identify each panel in the CardLayout
+    // When we want to show a panel, we use one of these names
     private static final String CARD_MEDICAL = "MEDICAL";
     private static final String CARD_PATIENT_MGMT = "PATIENT_MGMT";
     private static final String CARD_PATIENT_DASH = "PATIENT_DASH";
     private static final String CARD_APPOINTMENTS = "APPOINTMENTS";
     private static final String CARD_STAFF = "STAFF";
     
-    /**
-     * Constructor: Takes a String role (e.g., "Developer", "Clinician", "Admin", "Receptionist", "Patient").
-     * If role is null or empty, defaults to "Developer" for testing.
-     */
+    // Constructor - this sets up the navigation when someone logs in
+    // Takes the user's role so it knows which buttons to show
     public NavigationCard(String role) {
-        // Set default role to "Developer" if null or empty
+        // If no role was passed in, default to "Developer" for testing
         if (role == null || role.trim().isEmpty()) {
-            this.role = "Developer";
+            this.userRole = "Developer";
         } else {
-            this.role = role;
+            this.userRole = role;
         }
         
+        // Set up all the components (buttons, panels, etc.)
         initializeComponents();
+        // Arrange everything on the screen
         setupLayout();
-        configureSidebar(this.role);
+        // This part hides the buttons that the user shouldn't see based on their job
+        configureSidebar(this.userRole);
         
-        // Force UI rendering
+        // Make sure everything displays correctly
         this.revalidate();
         this.repaint();
-        System.out.println("NavigationCard initialized for role: " + this.role);
     }
     
-    /**
-     * Initialize all components.
-     */
+    // This method creates all the buttons and panels we need
     private void initializeComponents() {
         // Create CardLayout for center panel
         cardLayout = new CardLayout();
@@ -157,22 +159,20 @@ public class NavigationCard extends JPanel {
         centerPanel.add(staffScroll, CARD_STAFF);
     }
     
-    /**
-     * Configure sidebar button visibility based on role.
-     * Implement role-based visibility logic.
-     */
+    // This method decides which buttons to show based on the user's role
+    // This part hides the buttons that the user shouldn't see based on their job
     private void configureSidebar(String role) {
-        // Clear sidebar first
+        // First, remove everything from the sidebar so we can add the right buttons
         sidebarPanel.removeAll();
         
-        // Add Menu label at the top in bold font
+        // Add a title at the top that says "Hospital System" in bold
         JLabel menuLabel = new JLabel("Hospital System");
         menuLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
         menuLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         sidebarPanel.add(menuLabel);
         sidebarPanel.add(Box.createVerticalStrut(20));
         
-        // Developer: All buttons visible
+        // Developers can see everything - all buttons are visible
         if ("Developer".equalsIgnoreCase(role)) {
             sidebarPanel.add(medicalButton);
             sidebarPanel.add(Box.createVerticalStrut(10));
@@ -184,7 +184,7 @@ public class NavigationCard extends JPanel {
             sidebarPanel.add(Box.createVerticalStrut(10));
             sidebarPanel.add(staffButton);
         }
-        // Clinician: Medical Records, Appointments, Patient Management
+        // Clinicians can see Medical Records, Appointments, and Patient Management
         else if ("Clinician".equalsIgnoreCase(role)) {
             sidebarPanel.add(medicalButton);
             sidebarPanel.add(Box.createVerticalStrut(10));
@@ -192,22 +192,22 @@ public class NavigationCard extends JPanel {
             sidebarPanel.add(Box.createVerticalStrut(10));
             sidebarPanel.add(patientMgmtButton);
         }
-        // Admin: Patient Management, Staff Management
+        // Admins can see Patient Management and Staff Management
         else if ("Admin".equalsIgnoreCase(role)) {
             sidebarPanel.add(patientMgmtButton);
             sidebarPanel.add(Box.createVerticalStrut(10));
             sidebarPanel.add(staffButton);
         }
-        // Receptionist: Appointments, Patient Management
+        // Receptionists can see Appointments and Patient Management
         else if ("Receptionist".equalsIgnoreCase(role)) {
             sidebarPanel.add(appointmentsButton);
             sidebarPanel.add(Box.createVerticalStrut(10));
             sidebarPanel.add(patientMgmtButton);
         }
-        // Patient: Only Patient Dashboard - ensure it's the only thing visible
+        // Patients can only see their own dashboard
         else if ("Patient".equalsIgnoreCase(role)) {
             sidebarPanel.add(patientDashButton);
-            // Set the cardLayout to show PATIENT_DASH immediately
+            // Immediately show the patient dashboard when they log in
             cardLayout.show(centerPanel, CARD_PATIENT_DASH);
         }
         
@@ -265,11 +265,9 @@ public class NavigationCard extends JPanel {
         return cardLayout;
     }
     
-    /**
-     * Get the role.
-     */
+    // Get the user's role (Patient, Clinician, Admin, etc.)
     public String getRole() {
-        return role;
+        return userRole;
     }
     
     /**

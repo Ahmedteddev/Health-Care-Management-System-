@@ -1,102 +1,94 @@
-package repository;
+package model;
 
-import model.Patient;
+// This model class handles all the saving and loading for Patient data from the CSV
 import util.CsvUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Repository class for managing Patient entities.
- * Handles loading from CSV and persisting new patients.
- */
 public class PatientRepository {
     
     private final List<Patient> patients = new ArrayList<>();
     private final String csvPath;
     
-    /**
-     * Constructor that initializes the repository and loads patients from CSV.
-     * 
-     * @param csvPath The path to the patients.csv file
-     */
+    // Constructor - this sets up the repository and loads patients from CSV
     public PatientRepository(String csvPath) {
         this.csvPath = csvPath;
         load();
     }
     
-    /**
-     * Loads patients from the CSV file.
-     * Maps each row to a Patient object using the backward-compatible constructor.
-     */
+    // This method reads all the patient data from the CSV file
+    // CSV files are like spreadsheets - each line is a row, and commas separate the columns
     private void load() {
+        // We expect exactly 14 columns in each row of the CSV file
         final int EXPECTED_COLUMNS = 14;
         
         try {
-            List<String[]> rows = CsvUtils.readCsv(csvPath);
+            // CsvUtils.readCsv() reads the file and splits each line by commas
+            // It returns a list where each item is an array of strings
+            // For example, if the CSV has "P001,John,Smith,1990-01-01,..."
+            // Then row[0] = "P001", row[1] = "John", row[2] = "Smith", etc.
+            List<String[]> allRows = CsvUtils.readCsv(csvPath);
             
-            for (String[] row : rows) {
-                // Data integrity check: skip rows with insufficient columns
-                if (row.length < EXPECTED_COLUMNS) {
+            // Go through each row in the CSV file
+            for (String[] currentRow : allRows) {
+                // Check if this row has enough columns (sometimes CSV files have bad data)
+                if (currentRow.length < EXPECTED_COLUMNS) {
                     System.err.println("Warning: Skipping invalid patient row with insufficient columns (" + 
-                                     row.length + " < " + EXPECTED_COLUMNS + "): " + 
-                                     String.join(",", row));
-                    continue;
+                                     currentRow.length + " < " + EXPECTED_COLUMNS + "): " + 
+                                     String.join(",", currentRow));
+                    continue; // Skip this row and move to the next one
                 }
                 
-                // Map CSV row to Patient constructor
-                // CSV order: patient_id, first_name, last_name, date_of_birth, nhs_number,
-                //            gender, phone_number, email, address, postcode,
-                //            emergency_contact_name, emergency_contact_phone,
-                //            registration_date, gp_surgery_id
-                Patient patient = new Patient(
-                    row[0],   // patientId
-                    row[1],   // firstName
-                    row[2],   // lastName
-                    row[3],   // dateOfBirth
-                    row[4],   // nhsNumber
-                    row[5],   // gender
-                    row[6],   // phoneNumber
-                    row[7],   // email
-                    row[8],   // address
-                    row[9],   // postcode
-                    row[10],  // emergencyContactName
-                    row[11],  // emergencyContactPhone
-                    row[12],  // registrationDate
-                    row[13]   // gpSurgeryId
+                // Now we create a Patient object using the data from this row
+                // The CSV file has the data in this order:
+                // patient_id, first_name, last_name, date_of_birth, nhs_number,
+                // gender, phone_number, email, address, postcode,
+                // emergency_contact_name, emergency_contact_phone,
+                // registration_date, gp_surgery_id
+                // So row[0] is the patient ID, row[1] is first name, etc.
+                Patient newPatient = new Patient(
+                    currentRow[0],   // patientId (like "P001")
+                    currentRow[1],   // firstName
+                    currentRow[2],   // lastName
+                    currentRow[3],   // dateOfBirth
+                    currentRow[4],   // nhsNumber
+                    currentRow[5],   // gender
+                    currentRow[6],   // phoneNumber
+                    currentRow[7],   // email
+                    currentRow[8],   // address
+                    currentRow[9],   // postcode
+                    currentRow[10],  // emergencyContactName
+                    currentRow[11],  // emergencyContactPhone
+                    currentRow[12],  // registrationDate
+                    currentRow[13]   // gpSurgeryId
                 );
                 
-                patients.add(patient);
+                // Add this patient to our list
+                patients.add(newPatient);
             }
             
             System.out.println("Loaded " + patients.size() + " patients from " + csvPath);
             
         } catch (IOException ex) {
+            // If we can't read the file (maybe it doesn't exist or is locked)
             System.err.println("Failed to load patients from CSV file: " + csvPath);
             System.err.println("Error: " + ex.getMessage());
             System.err.println("The repository will start with an empty list.");
         } catch (Exception ex) {
+            // If something else goes wrong that we didn't expect
             System.err.println("Unexpected error while loading patients: " + ex.getMessage());
             ex.printStackTrace();
         }
     }
     
-    /**
-     * Returns all patients in the repository.
-     * 
-     * @return List of all Patient objects
-     */
+    // Returns all patients in the repository
     public List<Patient> getAll() {
         return new ArrayList<>(patients); // Return a copy to prevent external modification
     }
     
-    /**
-     * Finds a patient by their ID.
-     * Uses .trim() on ID lookups to prevent issues with hidden spaces in the CSV.
-     * 
-     * @param id The patient ID to search for (e.g., "P001")
-     * @return The Patient object if found, null otherwise
-     */
+    // Finds a patient by their ID
+    // Uses .trim() on ID lookups to prevent issues with hidden spaces in the CSV
     public Patient findById(String id) {
         if (id == null) {
             return null;
@@ -115,12 +107,8 @@ public class PatientRepository {
         return null;
     }
     
-    /**
-     * Adds a new patient to the repository and appends it to the CSV file.
-     * Ensures the P001 format is strictly maintained for all new entries.
-     * 
-     * @param patient The Patient object to add
-     */
+    // Adds a new patient to the repository and appends it to the CSV file
+    // Ensures the P001 format is strictly maintained for all new entries
     public void add(Patient patient) {
         if (patient == null) {
             System.err.println("Cannot add null patient to repository.");
@@ -176,12 +164,8 @@ public class PatientRepository {
         }
     }
     
-    /**
-     * Generates a new patient ID based on existing IDs.
-     * Format: P001, P002, P003, etc.
-     * 
-     * @return A new unique patient ID
-     */
+    // Generates a new patient ID based on existing IDs
+    // Format: P001, P002, P003, etc.
     public String generateNewId() {
         int max = 0;
         
@@ -202,33 +186,19 @@ public class PatientRepository {
         return String.format("P%03d", max + 1);
     }
     
-    /**
-     * Adds a new patient and appends it to CSV.
-     * Alias for add() method for backward compatibility.
-     * 
-     * @param patient The Patient object to add
-     */
+    // Adds a new patient and appends it to CSV (alias for add method)
     public void addAndAppend(Patient patient) {
         add(patient);
     }
     
-    /**
-     * Adds a new patient and saves to CSV.
-     * Alias for add() method - ensures addAndSave() method exists.
-     * 
-     * @param patient The Patient object to add
-     */
+    // Adds a new patient and saves to CSV (alias for add method)
     public void addAndSave(Patient patient) {
         add(patient);
     }
     
-    /**
-     * Updates an existing patient in the repository and saves to CSV.
-     * Finds the existing ID in the CSV and replaces that line with the new data.
-     * Uses .trim() on ID lookups to prevent issues with hidden spaces.
-     * 
-     * @param patient The updated Patient object
-     */
+    // Updates an existing patient in the repository and saves to CSV
+    // Finds the existing ID in the CSV and replaces that line with the new data
+    // Uses .trim() on ID lookups to prevent issues with hidden spaces
     public void updatePatient(Patient patient) {
         if (patient == null) {
             System.err.println("Cannot update null patient.");
@@ -264,21 +234,15 @@ public class PatientRepository {
         System.err.println("Patient with ID " + patientId + " not found for update.");
     }
     
-    /**
-     * Removes a patient from the repository.
-     * Note: This does not remove from CSV file (would require rewriting the entire file).
-     * 
-     * @param patient The Patient object to remove
-     */
+    // Removes a patient from the repository
+    // Note: This does not remove from CSV file (would require rewriting the entire file)
     public void remove(Patient patient) {
         if (patient != null) {
             patients.remove(patient);
         }
     }
     
-    /**
-     * Saves all patients to the CSV file.
-     */
+    // Saves all patients to the CSV file
     public void saveAll() {
         try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(csvPath))) {
             // Write header
@@ -310,9 +274,7 @@ public class PatientRepository {
         }
     }
     
-    /**
-     * Escapes CSV values that contain commas or quotes.
-     */
+    // Escapes CSV values that contain commas or quotes
     private String escapeCsv(String value) {
         if (value == null) {
             return "";
@@ -323,4 +285,5 @@ public class PatientRepository {
         return value;
     }
 }
+
 

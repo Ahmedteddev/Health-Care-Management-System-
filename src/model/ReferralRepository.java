@@ -1,15 +1,12 @@
-package repository;
+package model;
 
-import model.Referral;
+// This model class handles all the saving and loading for Referral data from the CSV
+// Uses a Singleton pattern so we only have one copy of the data
 import util.CsvUtils;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * ReferralRepository implementing Singleton Pattern.
- * Manages referral data and CSV persistence.
- */
 public class ReferralRepository {
     
     private static ReferralRepository referralRepo;
@@ -17,19 +14,15 @@ public class ReferralRepository {
     private final String csvPath;
     private static final int EXPECTED_COLUMNS = 16;
     
-    /**
-     * Private constructor to enforce Singleton pattern.
-     */
+    // Private constructor to enforce Singleton pattern
     private ReferralRepository(String csvPath) {
         this.csvPath = csvPath;
         this.referrals = new ArrayList<>();
         load();
     }
     
-    /**
-     * Public static method to get the singleton instance.
-     * Implements lazy initialization.
-     */
+    // Public static method to get the singleton instance
+    // Making sure we only have one copy of the data so it doesn't reset
     public static synchronized ReferralRepository getInstance(String csvPath) {
         if (referralRepo == null) {
             referralRepo = new ReferralRepository(csvPath);
@@ -37,9 +30,7 @@ public class ReferralRepository {
         return referralRepo;
     }
     
-    /**
-     * Loads referrals from CSV file.
-     */
+    // Loads referrals from CSV file
     private void load() {
         try {
             List<String[]> rows = CsvUtils.readCsv(csvPath);
@@ -86,16 +77,12 @@ public class ReferralRepository {
         }
     }
     
-    /**
-     * Returns all referrals.
-     */
+    // Returns all referrals
     public List<Referral> getAll() {
         return new ArrayList<>(referrals);
     }
     
-    /**
-     * Finds a referral by ID.
-     */
+    // Finds a referral by ID
     public Referral findById(String id) {
         if (id == null) {
             return null;
@@ -109,9 +96,7 @@ public class ReferralRepository {
         return null;
     }
     
-    /**
-     * Gets all referrals for a specific patient.
-     */
+    // Gets all referrals for a specific patient
     public List<Referral> findByPatientId(String patientId) {
         List<Referral> result = new ArrayList<>();
         if (patientId == null) {
@@ -126,11 +111,7 @@ public class ReferralRepository {
         return result;
     }
     
-    /**
-     * Adds a new referral and appends it to CSV.
-     * CSV format: ReferralID, Date, PatientID, ClinicianID, Specialty, Facility, Urgency, Notes
-     * (Note: The actual CSV has 16 columns, but we save all fields)
-     */
+    // Adds a new referral and appends it to CSV
     public void addAndAppend(Referral referral) {
         if (referral == null) {
             System.err.println("Cannot add null referral.");
@@ -179,10 +160,8 @@ public class ReferralRepository {
         }
     }
     
-    /**
-     * Generates a new referral ID.
-     * Format: R001, R002, R003, etc.
-     */
+    // Generates a new referral ID
+    // Format: R001, R002, R003, etc.
     public String generateNewId() {
         int max = 0;
         
@@ -203,21 +182,12 @@ public class ReferralRepository {
         return String.format("R%03d", max + 1);
     }
     
-    /**
-     * Deletes all referrals for a specific patient (for referential integrity).
-     * Alias for deleteAllByPatientId to match user's method name requirement.
-     * 
-     * @param patientId The patient ID whose referrals should be deleted
-     */
+    // Deletes all referrals for a specific patient
     public void deleteByPatientId(String patientId) {
         deleteAllByPatientId(patientId);
     }
     
-    /**
-     * Deletes all referrals for a specific patient.
-     * 
-     * @param patientId The patient ID whose referrals should be deleted
-     */
+    // Deletes all referrals for a specific patient
     public void deleteAllByPatientId(String patientId) {
         if (patientId == null || patientId.isEmpty()) {
             System.err.println("Cannot delete referrals: patient ID is null or empty.");
@@ -241,9 +211,7 @@ public class ReferralRepository {
         System.out.println("Deleted " + removedCount + " referral(s) for patient " + patientId);
     }
     
-    /**
-     * Saves all referrals to the CSV file.
-     */
+    // Saves all referrals to the CSV file
     private void saveAll() {
         try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(csvPath))) {
             // Write header
@@ -280,9 +248,7 @@ public class ReferralRepository {
         }
     }
     
-    /**
-     * Escapes CSV values that contain commas or quotes.
-     */
+    // Escapes CSV values that contain commas or quotes
     private String escapeCsv(String value) {
         if (value == null) {
             return "";
@@ -293,4 +259,5 @@ public class ReferralRepository {
         return value;
     }
 }
+
 

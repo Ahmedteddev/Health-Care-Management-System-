@@ -1,9 +1,6 @@
 package controller;
 
 import model.*;
-import repository.PatientRepository;
-import repository.ReferralRepository;
-import repository.StaffRepository;
 import view.LoginView;
 import view.NavigationCard;
 import view.MedicalRecordPanel;
@@ -15,104 +12,117 @@ import javax.swing.*;
 
 public class LoginController {
     
-    private final LoginView view;
+    // These are all the things the controller needs to work
+    private final LoginView loginScreen;
     private final PatientRepository patientRepository;
     private final StaffRepository staffRepository;
     private final ClinicianRepository clinicianRepository;
     private final AppointmentRepository appointmentRepository;
     private final PrescriptionRepository prescriptionRepository;
     private final FacilityRepository facilityRepository;
-    private final ReferralRepository referralRepository;
     
-    public LoginController(LoginView view,
+    // Constructor - this sets up the controller when it's first created
+    public LoginController(LoginView loginScreen,
                           PatientRepository patientRepository,
                           StaffRepository staffRepository,
                           ClinicianRepository clinicianRepository,
                           AppointmentRepository appointmentRepository,
                           PrescriptionRepository prescriptionRepository,
-                          FacilityRepository facilityRepository,
-                          ReferralRepository referralRepository) {
-        this.view = view;
+                          FacilityRepository facilityRepository) {
+        this.loginScreen = loginScreen;
         this.patientRepository = patientRepository;
         this.staffRepository = staffRepository;
         this.clinicianRepository = clinicianRepository;
         this.appointmentRepository = appointmentRepository;
         this.prescriptionRepository = prescriptionRepository;
         this.facilityRepository = facilityRepository;
-        this.referralRepository = referralRepository;
         
-        bind();
+        // Connect the buttons to the methods that handle clicks
+        connectButtonsToActions();
     }
     
-    private void bind() {
-        view.getLoginButton().addActionListener(e -> handleLogin());
-        view.getPasswordField().addActionListener(e -> handleLogin());
+    // This method connects the login button and password field to the handleLogin method
+    // When someone clicks the button or presses Enter in the password field, it calls handleLogin
+    private void connectButtonsToActions() {
+        loginScreen.getLoginButton().addActionListener(e -> handleLogin());
+        loginScreen.getPasswordField().addActionListener(e -> handleLogin());
     }
     
+    // This is the main method that runs when someone tries to log in
     private void handleLogin() {
-        String username = view.getUsername().trim();
-        String password = view.getPassword();
+        // Get what the user typed in the username and password fields
+        // Using trim() to remove any extra spaces at the start or end
+        String enteredUsername = loginScreen.getUsername().trim();
+        String enteredPassword = loginScreen.getPassword();
         
-        if (username.isEmpty() || password.isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Please enter both username and password.", "Login Error", JOptionPane.WARNING_MESSAGE);
+        // Check if they actually typed something in both fields
+        if (enteredUsername.isEmpty() || enteredPassword.isEmpty()) {
+            JOptionPane.showMessageDialog(loginScreen, "Please enter both username and password.", "Login Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        // Hard-coded password for everyone
-        if (!password.equals("12345")) {
+        // For this coursework, everyone uses the same password: "12345"
+        // In a real system, this would check against a database
+        if (!enteredPassword.equals("12345")) {
             System.out.println("Login Failed: Invalid password");
-            JOptionPane.showMessageDialog(view, "Invalid password. Use '12345' for testing.", "Login Failed", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(loginScreen, "Invalid password. Use '12345' for testing.", "Login Failed", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        // Determine role based on username - take the username string exactly as typed
-        String role = null;
-        String patientId = null;
+        // Now we need to figure out what role this user has
+        // We check different places to see if the username matches a patient, clinician, staff, etc.
+        String userRole = null;
+        String thePatientId = null;
         
-        // First, check if the username matches a record in PatientRepository (e.g., P001)
-        Patient patient = patientRepository.findById(username);
-        if (patient != null) {
-            // If it matches a patient, assign the role "Patient"
-            role = "Patient";
-            patientId = username; // Use exact string (e.g., "P001")
-            System.out.println("Login: Found patient with ID: " + patientId);
+        // First, check if the username is a patient ID (like P001, P002, etc.)
+        // Checking if it's a patient by looking for the ID in the patient repository
+        Patient foundPatient = patientRepository.findById(enteredUsername);
+        if (foundPatient != null) {
+            // If we found a patient, set their role to "Patient"
+            userRole = "Patient";
+            thePatientId = enteredUsername; // Keep the exact ID they typed (like "P001")
+            System.out.println("Login: Found patient with ID: " + thePatientId);
         } else {
-            // Second, check if the username matches a Clinician ID (e.g., C001)
-            Clinician clinician = clinicianRepository.findById(username);
-            if (clinician != null) {
-                // If it matches a clinician, assign the role "Clinician"
-                role = "Clinician";
-                System.out.println("Login: Found clinician with ID: " + username);
+            // If it's not a patient, check if it's a clinician ID (like C001, C002, etc.)
+            Clinician foundClinician = clinicianRepository.findById(enteredUsername);
+            if (foundClinician != null) {
+                // If we found a clinician, set their role to "Clinician"
+                userRole = "Clinician";
+                System.out.println("Login: Found clinician with ID: " + enteredUsername);
             } else {
-                // Third, check if it matches a Staff record (e.g., ST001)
-                Staff staff = staffRepository.findStaffById(username);
-                if (staff != null) {
-                    String staffRole = staff.getRole();
-                    if ("Clinician".equalsIgnoreCase(staffRole) || "GP".equalsIgnoreCase(staffRole) || 
-                        "Consultant".equalsIgnoreCase(staffRole) || "Nurse".equalsIgnoreCase(staffRole)) {
-                        role = "Clinician";
-                    } else if ("Practice Manager".equalsIgnoreCase(staffRole) || 
-                               "Hospital Administrator".equalsIgnoreCase(staffRole)) {
-                        role = "Admin";
-                    } else if ("Receptionist".equalsIgnoreCase(staffRole)) {
-                        role = "Receptionist";
+                // If it's not a clinician, check if it's a staff member (like ST001, ST002, etc.)
+                Staff foundStaff = staffRepository.findStaffById(enteredUsername);
+                if (foundStaff != null) {
+                    // Staff members have different roles, so we need to check what their job is
+                    String staffJobTitle = foundStaff.getRole();
+                    // Check what kind of staff member they are and assign the right role
+                    if ("Clinician".equalsIgnoreCase(staffJobTitle) || "GP".equalsIgnoreCase(staffJobTitle) || 
+                        "Consultant".equalsIgnoreCase(staffJobTitle) || "Nurse".equalsIgnoreCase(staffJobTitle)) {
+                        userRole = "Clinician";
+                    } else if ("Practice Manager".equalsIgnoreCase(staffJobTitle) || 
+                               "Hospital Administrator".equalsIgnoreCase(staffJobTitle)) {
+                        userRole = "Admin";
+                    } else if ("Receptionist".equalsIgnoreCase(staffJobTitle)) {
+                        userRole = "Receptionist";
                     } else {
-                        role = "Admin"; // Default for other staff roles
+                        // If we don't recognize the job title, default to Admin
+                        userRole = "Admin";
                     }
-                    System.out.println("Login: Found staff with ID: " + username + ", Role: " + role);
+                    System.out.println("Login: Found staff with ID: " + enteredUsername + ", Role: " + userRole);
                 } else {
-                    // Finally, check for hardcoded role names (backward compatibility)
-                    if (username.equalsIgnoreCase("Clinician")) {
-                        role = "Clinician";
-                    } else if (username.equalsIgnoreCase("Admin")) {
-                        role = "Admin";
-                    } else if (username.equalsIgnoreCase("Receptionist")) {
-                        role = "Receptionist";
-                    } else if (username.equalsIgnoreCase("Developer")) {
-                        role = "Developer";
+                    // Last check: see if they typed a role name directly (for testing)
+                    if (enteredUsername.equalsIgnoreCase("Clinician")) {
+                        userRole = "Clinician";
+                    } else if (enteredUsername.equalsIgnoreCase("Admin")) {
+                        userRole = "Admin";
+                    } else if (enteredUsername.equalsIgnoreCase("Receptionist")) {
+                        userRole = "Receptionist";
+                    } else if (enteredUsername.equalsIgnoreCase("Developer")) {
+                        userRole = "Developer";
                     } else {
-                        System.out.println("Login Failed: Invalid username - " + username);
-                        JOptionPane.showMessageDialog(view, 
+                        // If we can't find them anywhere, show an error
+                        System.out.println("Login Failed: Invalid username - " + enteredUsername);
+                        JOptionPane.showMessageDialog(loginScreen, 
                             "Invalid username. Accepted formats:\n" +
                             "- Patient ID: P001, P002, etc.\n" +
                             "- Clinician ID: C001, C002, etc.\n" +
@@ -126,33 +136,33 @@ public class LoginController {
             }
         }
         
-        // Close the login window
-        view.dispose();
+        // Close the login window since we're moving to the main application
+        loginScreen.dispose();
         
-        // Launch NavigationCard in a JFrame
-        JFrame frame = new JFrame("Hospital System - " + role);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        NavigationCard navigationCard = new NavigationCard(role);
-        frame.setContentPane(navigationCard); // Ensure this is the content
-        frame.setSize(1200, 800);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
+        // Create the main window that shows after login
+        // This window will have different buttons and panels depending on the user's role
+        JFrame mainWindow = new JFrame("Hospital System - " + userRole);
+        mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        NavigationCard navigationCard = new NavigationCard(userRole);
+        mainWindow.setContentPane(navigationCard);
+        mainWindow.setSize(1200, 800);
+        mainWindow.setLocationRelativeTo(null);
+        mainWindow.setVisible(true);
         
-        // Initialize controllers for the panels in NavigationCard
-        // Pass patientId so PatientDashboardPanel can load the correct data
-        initializeControllers(navigationCard, patientId);
+        // Now we need to set up all the controllers for the different panels
+        // This part hides the buttons that the user shouldn't see based on their job
+        // We also pass the patient ID if they're a patient, so their dashboard shows their data
+        setupAllTheControllers(navigationCard, thePatientId);
         
-        System.out.println("NavigationCard launched for role: " + role + (patientId != null ? " (Patient ID: " + patientId + ")" : ""));
     }
     
-    /**
-     * Initialize controllers for the panels in NavigationCard based on role.
-     */
-    private void initializeControllers(NavigationCard navigationCard, String patientId) {
-        String role = navigationCard.getRole();
+    // This method sets up all the controllers for the different panels in the navigation
+    // Each role sees different panels, so we only create controllers for the ones they can use
+    private void setupAllTheControllers(NavigationCard navigationCard, String thePatientId) {
+        String userRole = navigationCard.getRole();
         
-        // Initialize MedicalRecordPanel controller (for Clinician and Developer)
-        if ("Clinician".equalsIgnoreCase(role) || "Developer".equalsIgnoreCase(role)) {
+        // If they're a Clinician or Developer, they can see the Medical Records panel
+        if ("Clinician".equalsIgnoreCase(userRole) || "Developer".equalsIgnoreCase(userRole)) {
             MedicalRecordPanel medicalPanel = navigationCard.getMedicalRecordPanel();
             if (medicalPanel != null) {
                 new MedicalRecordController(
@@ -166,8 +176,8 @@ public class LoginController {
             }
         }
         
-        // Initialize AppointmentPanel controller (for Receptionist, Clinician, and Developer)
-        if ("Receptionist".equalsIgnoreCase(role) || "Clinician".equalsIgnoreCase(role) || "Developer".equalsIgnoreCase(role)) {
+        // Receptionists, Clinicians, and Developers can see the Appointments panel
+        if ("Receptionist".equalsIgnoreCase(userRole) || "Clinician".equalsIgnoreCase(userRole) || "Developer".equalsIgnoreCase(userRole)) {
             AppointmentPanel appointmentPanel = navigationCard.getAppointmentPanel();
             if (appointmentPanel != null) {
                 new AppointmentController(
@@ -180,9 +190,9 @@ public class LoginController {
             }
         }
         
-        // Initialize PatientManagementPanel controller (for Admin, Receptionist, Clinician, and Developer)
-        if ("Admin".equalsIgnoreCase(role) || "Receptionist".equalsIgnoreCase(role) || 
-            "Clinician".equalsIgnoreCase(role) || "Developer".equalsIgnoreCase(role)) {
+        // Admins, Receptionists, Clinicians, and Developers can manage patients
+        if ("Admin".equalsIgnoreCase(userRole) || "Receptionist".equalsIgnoreCase(userRole) || 
+            "Clinician".equalsIgnoreCase(userRole) || "Developer".equalsIgnoreCase(userRole)) {
             PatientManagementPanel patientMgmtPanel = navigationCard.getPatientManagementPanel();
             if (patientMgmtPanel != null) {
                 new PatientManagementController(
@@ -192,8 +202,8 @@ public class LoginController {
             }
         }
         
-        // Initialize StaffManagementPanel controller (for Admin and Developer)
-        if ("Admin".equalsIgnoreCase(role) || "Developer".equalsIgnoreCase(role)) {
+        // Only Admins and Developers can manage staff
+        if ("Admin".equalsIgnoreCase(userRole) || "Developer".equalsIgnoreCase(userRole)) {
             StaffManagementPanel staffPanel = navigationCard.getStaffManagementPanel();
             if (staffPanel != null) {
                 new StaffManagementController(
@@ -204,14 +214,13 @@ public class LoginController {
             }
         }
         
-        // Initialize PatientDashboardPanel controller (for Patient and Developer)
-        if ("Patient".equalsIgnoreCase(role) || "Developer".equalsIgnoreCase(role)) {
+        // Patients and Developers can see the Patient Dashboard
+        if ("Patient".equalsIgnoreCase(userRole) || "Developer".equalsIgnoreCase(userRole)) {
             PatientDashboardPanel patientDashPanel = navigationCard.getPatientDashboardPanel();
             if (patientDashPanel != null) {
-                // For Patient role, use the exact patientId from login (e.g., "P001")
-                if ("Patient".equalsIgnoreCase(role) && patientId != null) {
-                    // Pass the exact string (e.g., "P001") to the controller
-                    System.out.println("Initializing PatientDashboardController with Patient ID: " + patientId);
+                // If they're a patient, we need to load their specific data using their patient ID
+                if ("Patient".equalsIgnoreCase(userRole) && thePatientId != null) {
+                    // Create the controller and pass the patient ID so it knows which patient's data to show
                     new PatientDashboardController(
                         patientDashPanel,
                         appointmentRepository,
@@ -219,10 +228,10 @@ public class LoginController {
                         patientRepository,
                         clinicianRepository,
                         facilityRepository,
-                        patientId // Pass exact string
+                        thePatientId
                     );
-                } else if ("Developer".equalsIgnoreCase(role)) {
-                    // For Developer, just set a placeholder name
+                } else if ("Developer".equalsIgnoreCase(userRole)) {
+                    // For developers, just show a placeholder message
                     patientDashPanel.setPatientName("Developer View");
                 }
             }

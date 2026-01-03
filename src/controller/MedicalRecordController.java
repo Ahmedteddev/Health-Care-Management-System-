@@ -1,8 +1,6 @@
 package controller;
 
 import model.*;
-import repository.PatientRepository;
-import repository.ReferralRepository;
 import view.*;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -45,6 +43,7 @@ public class MedicalRecordController {
         view.getSearchButton().addActionListener(new SearchButtonListener());
         view.getIssuePrescriptionButton().addActionListener(new IssuePrescriptionButtonListener());
         view.getGenerateReferralButton().addActionListener(new GenerateReferralButtonListener());
+        view.getBtnPatientNote().addActionListener(e -> handleViewEditClinicalNote());
     }
     
     private void handleSearch() {
@@ -80,6 +79,7 @@ public class MedicalRecordController {
             view.clearReferrals();
             view.setIssuePrescriptionEnabled(false);
             view.setGenerateReferralEnabled(false);
+            view.setPatientNoteEnabled(false);
             view.setCurrentPatientId(null);
             return;
         }
@@ -100,6 +100,7 @@ public class MedicalRecordController {
         
         view.setIssuePrescriptionEnabled(true);
         view.setGenerateReferralEnabled(true);
+        view.setPatientNoteEnabled(true);
     }
     
     private void loadEncounters(String patientId) {
@@ -374,6 +375,112 @@ public class MedicalRecordController {
         @Override
         public void actionPerformed(ActionEvent e) {
             handleGenerateReferral();
+        }
+    }
+    
+    /**
+     * Handles viewing and editing the clinical note for the current patient.
+     * We are looking for the latest appointment so the doctor can add a note to it.
+     */
+    private void handleViewEditClinicalNote() {
+        // Get the current patient ID that was searched and displayed
+        String currentPatientId = view.getCurrentPatientId();
+        
+        if (currentPatientId == null || currentPatientId.isEmpty()) {
+            JOptionPane.showMessageDialog(view, 
+                "Please search for a patient first.", 
+                "No Patient Selected", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Go to the AppointmentRepository and find the latest appointment for this patient ID
+        java.util.List<Appointment> patientAppointments = appointmentRepository.getByPatientId(currentPatientId);
+        
+        // Student Logic: If no appointment exists yet, show a message
+        if (patientAppointments == null || patientAppointments.isEmpty()) {
+            JOptionPane.showMessageDialog(view, 
+                "No appointments found for this patient yet.", 
+                "No Appointments", 
+                JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        // Find the latest appointment by comparing dates
+        Appointment latestRecord = null;
+        String latestDate = "";
+        
+        for (Appointment appointment : patientAppointments) {
+            String appointmentDate = appointment.getAppointmentDate();
+            if (appointmentDate != null && !appointmentDate.isEmpty()) {
+                // Compare dates (assuming format is YYYY-MM-DD or similar sortable format)
+                if (latestDate.isEmpty() || appointmentDate.compareTo(latestDate) > 0) {
+                    latestDate = appointmentDate;
+                    latestRecord = appointment;
+                }
+            }
+        }
+        
+        // If we couldn't find a valid appointment with a date, use the first one
+        if (latestRecord == null && !patientAppointments.isEmpty()) {
+            latestRecord = patientAppointments.get(0);
+        }
+        
+        if (latestRecord == null) {
+            JOptionPane.showMessageDialog(view, 
+                "No appointments found for this patient yet.", 
+                "No Appointments", 
+                JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        // Get the current notes from the appointment
+        String patientNote = latestRecord.getNotes();
+        if (patientNote == null) {
+            patientNote = "";
+        }
+        
+        // Using a JTextArea so the doctor has plenty of room to type their notes
+        JTextArea noteArea = new JTextArea(10, 40);
+        noteArea.setText(patientNote);
+        noteArea.setLineWrap(true);
+        noteArea.setWrapStyleWord(true);
+        noteArea.setCaretPosition(0); // Scroll to top
+        
+        // Create a scroll pane for the text area
+        JScrollPane scrollPane = new JScrollPane(noteArea);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        
+        // Show the pop-up box with the text area
+        int result = JOptionPane.showConfirmDialog(
+            view,
+            scrollPane,
+            "Edit Clinical Note for Patient " + currentPatientId,
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE
+        );
+        
+        // When the user hits OK, update that appointment object's notes field
+        if (result == JOptionPane.OK_OPTION) {
+            String updatedNote = noteArea.getText();
+            latestRecord.setNotes(updatedNote);
+            
+            // Update the last modified date
+            String today = java.time.LocalDate.now().toString();
+            latestRecord.setLastModified(today);
+            
+            // Call appointmentRepository.saveAll() so the CSV file is updated immediately
+            // This saves the note back to the CSV so it stays there even if we close the app
+            appointmentRepository.updateAppointment(latestRecord);
+            
+            // Show a simple confirmation
+            JOptionPane.showMessageDialog(null, 
+                "Clinical note saved to the patient's record!", 
+                "Note Saved", 
+                JOptionPane.INFORMATION_MESSAGE);
+            
+            // Refresh the encounters table to show the updated note
+            loadEncounters(currentPatientId);
         }
     }
 }

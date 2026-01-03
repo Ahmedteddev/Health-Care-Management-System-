@@ -1,19 +1,13 @@
-package repository;
+package model;
 
-import model.Staff;
-import model.Clinician;
-import model.User;
+// This model class handles all the saving and loading for Staff and Clinician data from the CSV
+// It loads both staff.csv and clinicians.csv files
+// Uses a Singleton pattern so we only have one copy of the data
 import util.CsvUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Repository class for managing Staff and Clinician entities.
- * Dual loader: loads both staff.csv and clinicians.csv.
- * Maintains separate lists since staff IDs (ST) and clinician IDs (C) are different.
- * Implements Singleton pattern.
- */
 public class StaffRepository {
     
     private static StaffRepository instance;
@@ -22,11 +16,7 @@ public class StaffRepository {
     private final String staffCsvPath;
     private final String clinicianCsvPath;
     
-    /**
-     * Public constructor for backward compatibility.
-     * Creates a new instance. If instance is null, sets it as the singleton instance.
-     * Note: For new code, use getInstance() instead for proper singleton pattern.
-     */
+    // Constructor - creates a new instance and loads data from both CSV files
     public StaffRepository(String staffCsvPath, String clinicianCsvPath) {
         this.staffCsvPath = staffCsvPath;
         this.clinicianCsvPath = clinicianCsvPath;
@@ -38,10 +28,8 @@ public class StaffRepository {
         }
     }
     
-    /**
-     * Public static method to get the singleton instance.
-     * Implements lazy initialization.
-     */
+    // Public static method to get the singleton instance
+    // Making sure we only have one copy of the data so it doesn't reset
     public static synchronized StaffRepository getInstance(String staffCsvPath, String clinicianCsvPath) {
         if (instance == null) {
             instance = new StaffRepository(staffCsvPath, clinicianCsvPath);
@@ -49,12 +37,10 @@ public class StaffRepository {
         return instance;
     }
     
-    /**
-     * Loads staff members from staff.csv.
-     * CSV structure: staff_id, first_name, last_name, role, department,
-     *                 facility_id, phone_number, email, employment_status,
-     *                 start_date, line_manager, access_level
-     */
+    // Loads staff members from staff.csv
+    // CSV structure: staff_id, first_name, last_name, role, department,
+    //                 facility_id, phone_number, email, employment_status,
+    //                 start_date, line_manager, access_level
     private void loadStaff() {
         final int EXPECTED_COLUMNS = 12;
         
@@ -105,12 +91,10 @@ public class StaffRepository {
         }
     }
     
-    /**
-     * Loads clinicians from clinicians.csv.
-     * CSV structure: clinician_id, first_name, last_name, title, speciality,
-     *                 gmc_number, phone_number, email, workplace_id,
-     *                 workplace_type, employment_status, start_date
-     */
+    // Loads clinicians from clinicians.csv
+    // CSV structure: clinician_id, first_name, last_name, title, speciality,
+    //                 gmc_number, phone_number, email, workplace_id,
+    //                 workplace_type, employment_status, start_date
     private void loadClinicians() {
         final int EXPECTED_COLUMNS = 12;
         
@@ -161,30 +145,17 @@ public class StaffRepository {
         }
     }
     
-    /**
-     * Returns all staff members (non-clinicians).
-     * 
-     * @return List of all Staff objects
-     */
+    // Returns all staff members (non-clinicians)
     public List<Staff> getAllStaff() {
         return new ArrayList<>(staffList); // Return a copy to prevent external modification
     }
     
-    /**
-     * Returns all clinicians.
-     * 
-     * @return List of all Clinician objects
-     */
+    // Returns all clinicians
     public List<Clinician> getAllClinicians() {
         return new ArrayList<>(clinicianList); // Return a copy to prevent external modification
     }
     
-    /**
-     * Returns a unified list of all Users (both Staff and Clinicians).
-     * Since Clinician extends Staff, and Staff extends User, all are Users.
-     * 
-     * @return List of all User objects (Staff and Clinicians)
-     */
+    // Returns a unified list of all Users (both Staff and Clinicians)
     public List<User> getAllUsers() {
         List<User> allUsers = new ArrayList<>();
         allUsers.addAll(staffList);
@@ -192,12 +163,7 @@ public class StaffRepository {
         return allUsers;
     }
     
-    /**
-     * Finds a staff member by their ID.
-     * 
-     * @param id The staff ID to search for (format: ST001, ST002, etc.)
-     * @return The Staff object if found, null otherwise
-     */
+    // Finds a staff member by their ID
     public Staff findStaffById(String id) {
         if (id == null) {
             return null;
@@ -211,12 +177,7 @@ public class StaffRepository {
         return null;
     }
     
-    /**
-     * Finds a clinician by their ID.
-     * 
-     * @param id The clinician ID to search for (format: C001, C002, etc.)
-     * @return The Clinician object if found, null otherwise
-     */
+    // Finds a clinician by their ID
     public Clinician findClinicianById(String id) {
         if (id == null) {
             return null;
@@ -230,13 +191,7 @@ public class StaffRepository {
         return null;
     }
     
-    /**
-     * Finds any user (Staff or Clinician) by their ID.
-     * Searches both staff and clinician lists.
-     * 
-     * @param id The ID to search for (ST001, C001, etc.)
-     * @return The User object if found, null otherwise
-     */
+    // Finds any user (Staff or Clinician) by their ID
     public User findUserById(String id) {
         if (id == null) {
             return null;
@@ -257,11 +212,7 @@ public class StaffRepository {
         return null;
     }
     
-    /**
-     * Adds a new staff member to the repository and appends it to the CSV file.
-     * 
-     * @param staff The Staff object to add
-     */
+    // Adds a new staff member to the repository and appends it to the CSV file
     public void addStaff(Staff staff) {
         if (staff == null) {
             System.err.println("Cannot add null staff to repository.");
@@ -307,11 +258,7 @@ public class StaffRepository {
         }
     }
     
-    /**
-     * Adds a new clinician to the repository and appends it to the CSV file.
-     * 
-     * @param clinician The Clinician object to add
-     */
+    // Adds a new clinician to the repository and appends it to the CSV file
     public void addClinician(Clinician clinician) {
         if (clinician == null) {
             System.err.println("Cannot add null clinician to repository.");
@@ -357,11 +304,7 @@ public class StaffRepository {
         }
     }
     
-    /**
-     * Updates an existing staff member in the repository and saves to CSV.
-     * 
-     * @param staff The updated Staff object
-     */
+    // Updates an existing staff member in the repository and saves to CSV
     public void updateStaff(Staff staff) {
         if (staff == null) {
             System.err.println("Cannot update null staff.");
@@ -382,12 +325,7 @@ public class StaffRepository {
         System.err.println("Staff with ID " + staff.getStaffId() + " not found for update.");
     }
     
-    /**
-     * Removes a staff member from the repository.
-     * Note: This does not remove from CSV file (would require rewriting the entire file).
-     * 
-     * @param staff The Staff object to remove
-     */
+    // Removes a staff member from the repository
     public void removeStaff(Staff staff) {
         if (staff != null) {
             staffList.remove(staff);
@@ -396,9 +334,7 @@ public class StaffRepository {
         }
     }
     
-    /**
-     * Saves all staff to the CSV file.
-     */
+    // Saves all staff to the CSV file
     private void saveAllStaff() {
         try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(staffCsvPath))) {
             // Write header
@@ -428,9 +364,7 @@ public class StaffRepository {
         }
     }
     
-    /**
-     * Escapes CSV values that contain commas or quotes.
-     */
+    // Escapes CSV values that contain commas or quotes
     private String escapeCsv(String value) {
         if (value == null) {
             return "";
@@ -441,16 +375,12 @@ public class StaffRepository {
         return value;
     }
     
-    /**
-     * Removes a clinician from the repository.
-     * Note: This does not remove from CSV file (would require rewriting the entire file).
-     * 
-     * @param clinician The Clinician object to remove
-     */
+    // Removes a clinician from the repository
     public void removeClinician(Clinician clinician) {
         if (clinician != null) {
             clinicianList.remove(clinician);
         }
     }
 }
+
 
