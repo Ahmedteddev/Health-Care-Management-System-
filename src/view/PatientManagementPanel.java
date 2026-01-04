@@ -254,10 +254,7 @@ public class PatientManagementPanel extends JPanel {
         tableModel.fireTableDataChanged();
     }
     
-    /**
-     * Update table with filtered list of patients.
-     * Clears the existing DefaultTableModel and repopulates it with the new list.
-     */
+    // Update the table with a list of patients
     public void updateTable(List<Patient> patients) {
         // Clear the existing DefaultTableModel and repopulate it with the new list
         tableModel.setPatients(patients);

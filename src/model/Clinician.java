@@ -1,10 +1,6 @@
 package model;
 
-/**
- * Clinician class extending Staff.
- * Matches CSV structure: clinician_id, first_name, last_name, title, speciality,
- * gmc_number, phone_number, email, workplace_id, workplace_type, employment_status, start_date
- */
+// Clinician class - matches the clinicians.csv file structure
 public class Clinician extends Staff {
     
     private String clinicianId;
@@ -19,24 +15,19 @@ public class Clinician extends Staff {
         super();
     }
     
-    /**
-     * Full-parameter constructor for CSV loading (all 12 fields).
-     * Note: email is inherited from User class.
-     */
+    // Constructor for loading from CSV - all 12 fields
     public Clinician(String clinicianId, String firstName, String lastName,
                      String title, String speciality, String gmcNumber,
                      String phoneNumber, String email, String workplaceId,
                      String workplaceType, String employmentStatus,
                      String startDate) {
-        // Call Staff constructor with appropriate parameters
-        // Note: Staff needs role, department, facilityId - we'll derive these
         super(clinicianId, firstName, lastName,
-              determineRole(title, speciality),  // role
-              determineDepartment(speciality, workplaceType),  // department
-              workplaceId,  // facilityId (using workplaceId)
+              determineRole(title, speciality),
+              determineDepartment(speciality, workplaceType),
+              workplaceId,
               phoneNumber, email, employmentStatus, startDate,
-              null,  // lineManager (not in CSV)
-              null); // accessLevel (not in CSV)
+              null,
+              null);
         
         this.clinicianId = clinicianId;
         this.title = title;
@@ -44,18 +35,14 @@ public class Clinician extends Staff {
         this.gmcNumber = gmcNumber;
         this.workplaceId = workplaceId;
         this.workplaceType = workplaceType;
-        // Set qualification based on title/speciality
         this.qualification = determineQualification(title, speciality, gmcNumber);
     }
     
-    /**
-     * Constructor for User-based initialization.
-     */
     public Clinician(String username, String password, String email,
                      String staffId, String department, String hireDate,
                      String qualification) {
         super(username, password, email, staffId, department, hireDate);
-        this.clinicianId = staffId;  // clinicianId maps to staffId
+        this.clinicianId = staffId;
         this.qualification = qualification;
     }
     
@@ -86,7 +73,6 @@ public class Clinician extends Staff {
         return "Clinical Qualification";
     }
     
-    // Backward compatibility methods
     public String getId() {
         return clinicianId != null ? clinicianId : getStaffId();
     }
@@ -108,16 +94,12 @@ public class Clinician extends Staff {
         return clinicianId;
     }
     
-    // ============================================================
-    // ALL CSV FIELDS - GETTERS AND SETTERS
-    // ============================================================
     public String getClinicianId() {
         return clinicianId;
     }
     
     public void setClinicianId(String clinicianId) {
         this.clinicianId = clinicianId;
-        // Also update staffId for consistency
         setStaffId(clinicianId);
     }
     
@@ -151,7 +133,6 @@ public class Clinician extends Staff {
     
     public void setWorkplaceId(String workplaceId) {
         this.workplaceId = workplaceId;
-        // Also update facilityId for consistency
         setFacilityId(workplaceId);
     }
     
@@ -171,7 +152,6 @@ public class Clinician extends Staff {
         this.qualification = qualification;
     }
     
-    // Additional getters for phoneNumber (inherited from Staff but may need override)
     @Override
     public String getPhoneNumber() {
         return super.getPhoneNumber();
@@ -181,7 +161,4 @@ public class Clinician extends Staff {
     public void setPhoneNumber(String phoneNumber) {
         super.setPhoneNumber(phoneNumber);
     }
-    
-    // Note: employmentStatus and startDate are inherited from Staff
-    // firstName, lastName, email are also inherited
 }

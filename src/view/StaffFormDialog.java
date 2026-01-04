@@ -154,10 +154,7 @@ public class StaffFormDialog extends JDialog {
         return formPanel;
     }
     
-    /**
-     * Returns a Staff object with the data from the form.
-     * Note: staffId should be set by the controller for new staff.
-     */
+    // Get the staff data from the form
     public Staff getStaffData() {
         Staff staff = new Staff();
         staff.setStaffId(staffIdField.getText().trim());
@@ -172,9 +169,7 @@ public class StaffFormDialog extends JDialog {
         return staff;
     }
     
-    /**
-     * Pre-fills the form fields with data from a Staff object.
-     */
+    // Fill the form with staff data
     public void setStaffData(Staff staff) {
         if (staff == null) {
             return;
@@ -201,16 +196,11 @@ public class StaffFormDialog extends JDialog {
         startDateField.setText(staff.getStartDate() != null ? staff.getStartDate() : "");
     }
     
-    /**
-     * Sets the staff ID field (for new staff, ID is generated).
-     */
     public void setStaffId(String id) {
         staffIdField.setText(id);
     }
     
-    /**
-     * Makes the staff ID field editable (for new staff).
-     */
+    // Make the staff ID field editable
     public void setStaffIdEditable(boolean editable) {
         staffIdField.setEditable(editable);
     }

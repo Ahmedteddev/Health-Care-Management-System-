@@ -2,23 +2,23 @@ package model;
 
 public class Prescription {
 
-    private String id;               // prescription_id (RX001)
-    private String patientId;        // patient_id (P001)
-    private String clinicianId;      // clinician_id (C001)
-    private String appointmentId;    // appointment_id (A001)
-    private String prescriptionDate; // prescription_date (yyyy-MM-dd)
+    private String id;
+    private String patientId;
+    private String clinicianId;
+    private String appointmentId;
+    private String prescriptionDate;
 
-    private String medication;       // medication_name
-    private String dosage;           // dosage (e.g. 20mg)
-    private String frequency;        // frequency (e.g. Once daily)
-    private String durationDays;     // duration_days (e.g. 28)
-    private String quantity;         // quantity (e.g. 28 tablets)
+    private String medication;
+    private String dosage;
+    private String frequency;
+    private String durationDays;
+    private String quantity;
 
-    private String instructions;     // instructions
-    private String pharmacyName;     // pharmacy_name
-    private String status;           // status (Issued / Collected / etc.)
-    private String issueDate;        // issue_date (yyyy-MM-dd)
-    private String collectionDate;   // collection_date (yyyy-MM-dd or "")
+    private String instructions;
+    private String pharmacyName;
+    private String status;
+    private String issueDate;
+    private String collectionDate;
 
     public Prescription() { }
 
@@ -55,9 +55,6 @@ public class Prescription {
         this.collectionDate = collectionDate;
     }
 
-    // ============================================================
-    // REQUIRED FIELDS (as per specification)
-    // ============================================================
     public String getPrescriptionId() {
         return id;
     }
@@ -66,9 +63,6 @@ public class Prescription {
         this.id = prescriptionId;
     }
     
-    // ============================================================
-    // EXISTING GETTERS AND SETTERS
-    // ============================================================
     public String getId()               { return id; }
     public String getPatientId()        { return patientId; }
     public String getClinicianId()      { return clinicianId; }

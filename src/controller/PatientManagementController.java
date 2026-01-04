@@ -47,10 +47,7 @@ public class PatientManagementController {
         view.setPatients(allPatientsList);
     }
     
-    /**
-     * Search Logic: Implement handleSearch() to filter the PatientRepository list.
-     * Match the search text against patientId (e.g., "P001") and fullName.
-     */
+    // Search for patients by ID or name
     private void handleSearch() {
         // Get the search text (e.g., "P001")
         String searchText = view.getPatientIdField().getText().trim();
@@ -111,12 +108,7 @@ public class PatientManagementController {
         view.updateTable(filteredList);
     }
     
-    /**
-     * Register Logic: Open NewPatientDialog (PatientFormDialog).
-     * Ensure the dialog doesn't require a Clinician object.
-     * If dialog.isConfirmed(), get the new Patient object, call repository.addAndSave(patient),
-     * and immediately call refreshTable() in the view.
-     */
+    // Open dialog to register a new patient
     private void handleRegisterPatient() {
         JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view);
         PatientFormDialog dialog = new PatientFormDialog(parentFrame, "Register New Patient");
@@ -178,11 +170,7 @@ public class PatientManagementController {
         }
     }
     
-    /**
-     * Edit Logic: Get the selected row from view.getSelectedPatientId().
-     * Open an EditPatientDialog (PatientFormDialog) pre-filled with that patient's data.
-     * On save, update the repository and refresh the UI table.
-     */
+    // Edit the selected patient
     private void handleEditPatient() {
         // Get the selected row from view.getSelectedPatientId()
         String selectedId = view.getSelectedPatientId();

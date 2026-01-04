@@ -378,10 +378,7 @@ public class MedicalRecordController {
         }
     }
     
-    /**
-     * Handles viewing and editing the clinical note for the current patient.
-     * We are looking for the latest appointment so the doctor can add a note to it.
-     */
+    // We are looking for the latest appointment so the doctor can add a note to it
     private void handleViewEditClinicalNote() {
         // Get the current patient ID that was searched and displayed
         String currentPatientId = view.getCurrentPatientId();

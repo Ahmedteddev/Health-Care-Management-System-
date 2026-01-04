@@ -1,10 +1,6 @@
 package model;
 
-/**
- * Staff class extending User.
- * Matches CSV structure: staff_id, first_name, last_name, role, department,
- * facility_id, phone_number, email, employment_status, start_date, line_manager, access_level
- */
+// Staff class - matches the staff.csv file structure
 public class Staff extends User {
     
     private String staffId;
@@ -23,15 +19,11 @@ public class Staff extends User {
         super();
     }
     
-    /**
-     * Full-parameter constructor for CSV loading (all 12 fields).
-     * Note: email is inherited from User class.
-     */
+    // Constructor for loading from CSV - takes all 12 fields
     public Staff(String staffId, String firstName, String lastName,
                  String role, String department, String facilityId,
                  String phoneNumber, String email, String employmentStatus,
                  String startDate, String lineManager, String accessLevel) {
-        // Generate username from email or staffId
         super(generateUsername(email, staffId), "default", email);
         this.staffId = staffId;
         this.firstName = firstName;
@@ -46,15 +38,12 @@ public class Staff extends User {
         this.accessLevel = accessLevel;
     }
     
-    /**
-     * Constructor for User-based initialization.
-     */
     public Staff(String username, String password, String email,
                  String staffId, String department, String hireDate) {
         super(username, password, email);
         this.staffId = staffId;
         this.department = department;
-        this.startDate = hireDate;  // startDate maps to hireDate
+        this.startDate = hireDate;
     }
     
     private static String generateUsername(String email, String staffId) {
@@ -64,7 +53,6 @@ public class Staff extends User {
         return staffId;
     }
     
-    // Backward compatibility methods
     public String getId() {
         return staffId;
     }
@@ -88,9 +76,6 @@ public class Staff extends User {
         this.startDate = hireDate;
     }
     
-    // ============================================================
-    // ALL CSV FIELDS - GETTERS AND SETTERS
-    // ============================================================
     public String getStaffId() {
         return staffId;
     }

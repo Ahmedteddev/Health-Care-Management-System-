@@ -1,8 +1,6 @@
 package model;
 
-// This model class handles all the saving and loading for Staff and Clinician data from the CSV
-// It loads both staff.csv and clinicians.csv files
-// Uses a Singleton pattern so we only have one copy of the data
+// Handles loading and saving staff and clinician data from CSV (uses singleton pattern)
 import util.CsvUtils;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,20 +14,17 @@ public class StaffRepository {
     private final String staffCsvPath;
     private final String clinicianCsvPath;
     
-    // Constructor - creates a new instance and loads data from both CSV files
     public StaffRepository(String staffCsvPath, String clinicianCsvPath) {
         this.staffCsvPath = staffCsvPath;
         this.clinicianCsvPath = clinicianCsvPath;
         loadStaff();
         loadClinicians();
-        // If instance is null, set it (allows singleton pattern to work)
         if (instance == null) {
             instance = this;
         }
     }
     
-    // Public static method to get the singleton instance
-    // Making sure we only have one copy of the data so it doesn't reset
+    // Get the singleton instance (only one copy of the data)
     public static synchronized StaffRepository getInstance(String staffCsvPath, String clinicianCsvPath) {
         if (instance == null) {
             instance = new StaffRepository(staffCsvPath, clinicianCsvPath);
@@ -37,10 +32,7 @@ public class StaffRepository {
         return instance;
     }
     
-    // Loads staff members from staff.csv
-    // CSV structure: staff_id, first_name, last_name, role, department,
-    //                 facility_id, phone_number, email, employment_status,
-    //                 start_date, line_manager, access_level
+    // Load staff from staff.csv
     private void loadStaff() {
         final int EXPECTED_COLUMNS = 12;
         
@@ -48,7 +40,6 @@ public class StaffRepository {
             List<String[]> rows = CsvUtils.readCsv(staffCsvPath);
             
             for (String[] row : rows) {
-                // Data integrity check: skip rows with insufficient columns
                 if (row.length < EXPECTED_COLUMNS) {
                     System.err.println("Warning: Skipping invalid staff row with insufficient columns (" + 
                                      row.length + " < " + EXPECTED_COLUMNS + "): " + 
@@ -56,24 +47,19 @@ public class StaffRepository {
                     continue;
                 }
                 
-                // Map CSV row to Staff constructor - matching CSV headers exactly
-                // CSV order: staff_id (0), first_name (1), last_name (2), role (3),
-                //            department (4), facility_id (5), phone_number (6),
-                //            email (7), employment_status (8), start_date (9),
-                //            line_manager (10), access_level (11)
                 Staff staff = new Staff(
-                    row[0],   // staffId
-                    row[1],   // firstName
-                    row[2],   // lastName
-                    row[3],   // role
-                    row[4],   // department
-                    row[5],   // facilityId
-                    row[6],   // phoneNumber
-                    row[7],   // email
-                    row[8],   // employmentStatus
-                    row[9],   // startDate
-                    row[10], // lineManager
-                    row[11]  // accessLevel
+                    row[0],
+                    row[1],
+                    row[2],
+                    row[3],
+                    row[4],
+                    row[5],
+                    row[6],
+                    row[7],
+                    row[8],
+                    row[9],
+                    row[10],
+                    row[11]
                 );
                 
                 staffList.add(staff);
@@ -91,10 +77,7 @@ public class StaffRepository {
         }
     }
     
-    // Loads clinicians from clinicians.csv
-    // CSV structure: clinician_id, first_name, last_name, title, speciality,
-    //                 gmc_number, phone_number, email, workplace_id,
-    //                 workplace_type, employment_status, start_date
+    // Load clinicians from clinicians.csv
     private void loadClinicians() {
         final int EXPECTED_COLUMNS = 12;
         
@@ -102,7 +85,6 @@ public class StaffRepository {
             List<String[]> rows = CsvUtils.readCsv(clinicianCsvPath);
             
             for (String[] row : rows) {
-                // Data integrity check: skip rows with insufficient columns
                 if (row.length < EXPECTED_COLUMNS) {
                     System.err.println("Warning: Skipping invalid clinician row with insufficient columns (" + 
                                      row.length + " < " + EXPECTED_COLUMNS + "): " + 
@@ -110,24 +92,19 @@ public class StaffRepository {
                     continue;
                 }
                 
-                // Map CSV row to Clinician constructor - matching CSV headers exactly
-                // CSV order: clinician_id (0), first_name (1), last_name (2), title (3),
-                //            speciality (4), gmc_number (5), phone_number (6),
-                //            email (7), workplace_id (8), workplace_type (9),
-                //            employment_status (10), start_date (11)
                 Clinician clinician = new Clinician(
-                    row[0],   // clinicianId
-                    row[1],   // firstName
-                    row[2],   // lastName
-                    row[3],   // title
-                    row[4],   // speciality
-                    row[5],   // gmcNumber
-                    row[6],   // phoneNumber
-                    row[7],   // email
-                    row[8],   // workplaceId
-                    row[9],   // workplaceType
-                    row[10],  // employmentStatus
-                    row[11]   // startDate
+                    row[0],
+                    row[1],
+                    row[2],
+                    row[3],
+                    row[4],
+                    row[5],
+                    row[6],
+                    row[7],
+                    row[8],
+                    row[9],
+                    row[10],
+                    row[11]
                 );
                 
                 clinicianList.add(clinician);
@@ -145,17 +122,14 @@ public class StaffRepository {
         }
     }
     
-    // Returns all staff members (non-clinicians)
     public List<Staff> getAllStaff() {
-        return new ArrayList<>(staffList); // Return a copy to prevent external modification
+        return new ArrayList<>(staffList);
     }
     
-    // Returns all clinicians
     public List<Clinician> getAllClinicians() {
-        return new ArrayList<>(clinicianList); // Return a copy to prevent external modification
+        return new ArrayList<>(clinicianList);
     }
     
-    // Returns a unified list of all Users (both Staff and Clinicians)
     public List<User> getAllUsers() {
         List<User> allUsers = new ArrayList<>();
         allUsers.addAll(staffList);
@@ -163,7 +137,6 @@ public class StaffRepository {
         return allUsers;
     }
     
-    // Finds a staff member by their ID
     public Staff findStaffById(String id) {
         if (id == null) {
             return null;
@@ -177,7 +150,6 @@ public class StaffRepository {
         return null;
     }
     
-    // Finds a clinician by their ID
     public Clinician findClinicianById(String id) {
         if (id == null) {
             return null;
@@ -191,19 +163,16 @@ public class StaffRepository {
         return null;
     }
     
-    // Finds any user (Staff or Clinician) by their ID
     public User findUserById(String id) {
         if (id == null) {
             return null;
         }
         
-        // Try staff first
         Staff staff = findStaffById(id);
         if (staff != null) {
             return staff;
         }
         
-        // Try clinicians
         Clinician clinician = findClinicianById(id);
         if (clinician != null) {
             return clinician;
@@ -212,23 +181,20 @@ public class StaffRepository {
         return null;
     }
     
-    // Adds a new staff member to the repository and appends it to the CSV file
+    // Add a new staff member and append to CSV
     public void addStaff(Staff staff) {
         if (staff == null) {
             System.err.println("Cannot add null staff to repository.");
             return;
         }
         
-        // Check if staff already exists
         if (findStaffById(staff.getStaffId()) != null) {
             System.err.println("Staff with ID " + staff.getStaffId() + " already exists.");
             return;
         }
         
-        // Add to in-memory list
         staffList.add(staff);
         
-        // Append to CSV file
         try {
             String[] rowData = {
                 staff.getStaffId(),
@@ -258,23 +224,20 @@ public class StaffRepository {
         }
     }
     
-    // Adds a new clinician to the repository and appends it to the CSV file
+    // Add a new clinician and append to CSV
     public void addClinician(Clinician clinician) {
         if (clinician == null) {
             System.err.println("Cannot add null clinician to repository.");
             return;
         }
         
-        // Check if clinician already exists
         if (findClinicianById(clinician.getClinicianId()) != null) {
             System.err.println("Clinician with ID " + clinician.getClinicianId() + " already exists.");
             return;
         }
         
-        // Add to in-memory list
         clinicianList.add(clinician);
         
-        // Append to CSV file
         try {
             String[] rowData = {
                 clinician.getClinicianId(),
@@ -304,18 +267,16 @@ public class StaffRepository {
         }
     }
     
-    // Updates an existing staff member in the repository and saves to CSV
+    // Update a staff member and save to CSV
     public void updateStaff(Staff staff) {
         if (staff == null) {
             System.err.println("Cannot update null staff.");
             return;
         }
         
-        // Find and update the staff in the list
         for (int i = 0; i < staffList.size(); i++) {
             if (staffList.get(i).getStaffId().equals(staff.getStaffId())) {
                 staffList.set(i, staff);
-                // Save all to CSV
                 saveAllStaff();
                 System.out.println("Successfully updated staff " + staff.getStaffId());
                 return;
@@ -325,23 +286,20 @@ public class StaffRepository {
         System.err.println("Staff with ID " + staff.getStaffId() + " not found for update.");
     }
     
-    // Removes a staff member from the repository
+    // Remove a staff member and save to CSV
     public void removeStaff(Staff staff) {
         if (staff != null) {
             staffList.remove(staff);
-            // Save updated list to CSV
             saveAllStaff();
         }
     }
     
-    // Saves all staff to the CSV file
+    // Save all staff back to CSV
     private void saveAllStaff() {
         try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(staffCsvPath))) {
-            // Write header
             bw.write("staff_id,first_name,last_name,role,department,facility_id,phone_number,email,employment_status,start_date,line_manager,access_level");
             bw.newLine();
             
-            // Write all staff
             for (Staff staff : staffList) {
                 bw.write(escapeCsv(staff.getStaffId()) + ",");
                 bw.write(escapeCsv(staff.getFirstName()) + ",");
@@ -364,7 +322,7 @@ public class StaffRepository {
         }
     }
     
-    // Escapes CSV values that contain commas or quotes
+    // Escape commas and quotes in CSV values
     private String escapeCsv(String value) {
         if (value == null) {
             return "";
@@ -375,7 +333,6 @@ public class StaffRepository {
         return value;
     }
     
-    // Removes a clinician from the repository
     public void removeClinician(Clinician clinician) {
         if (clinician != null) {
             clinicianList.remove(clinician);

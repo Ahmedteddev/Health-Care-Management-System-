@@ -1,10 +1,6 @@
 package model;
 
-/**
- * Facility class representing healthcare facilities.
- * Matches CSV structure: facility_id, facility_name, facility_type, address, 
- * postcode, phone_number, email, opening_hours, manager_name, capacity, specialities_offered
- */
+// Facility class - matches the facilities.csv file structure
 public class Facility {
     
     private String facilityId;
@@ -22,9 +18,7 @@ public class Facility {
     public Facility() {
     }
     
-    /**
-     * Full-parameter constructor for CSV loading.
-     */
+    // Constructor for loading from CSV
     public Facility(String facilityId, String facilityName, String facilityType,
                     String address, String postcode, String phoneNumber,
                     String email, String openingHours, String managerName,
@@ -42,7 +36,6 @@ public class Facility {
         this.specialitiesOffered = specialitiesOffered;
     }
     
-    // Backward compatibility methods
     public String getId() {
         return facilityId;
     }
@@ -67,9 +60,6 @@ public class Facility {
         this.facilityType = type;
     }
     
-    // ============================================================
-    // GETTERS AND SETTERS
-    // ============================================================
     public String getFacilityId() {
         return facilityId;
     }
@@ -158,7 +148,6 @@ public class Facility {
         this.specialitiesOffered = specialitiesOffered;
     }
     
-    // Backward compatibility
     public String getPhone() {
         return phoneNumber;
     }

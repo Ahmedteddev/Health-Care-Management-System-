@@ -1,10 +1,9 @@
 package model;
 
-/**
- * Nurse class extending Clinician.
- * Represents nursing staff.
- */
+// Nurse class - for nursing staff
 public class Nurse extends Clinician {
+    
+    private String nursingGrade;
     
     public Nurse() {
         super();
@@ -16,7 +15,6 @@ public class Nurse extends Clinician {
         super(username, password, email, staffId, department, hireDate, qualification);
     }
     
-    // Backward compatibility constructor
     public Nurse(String clinicianId, String firstName, String lastName,
                  String title, String speciality, String gmcNumber,
                  String phone, String email, String workplaceId,
@@ -24,6 +22,15 @@ public class Nurse extends Clinician {
                  String startDate) {
         super(clinicianId, firstName, lastName, title, speciality, gmcNumber,
               phone, email, workplaceId, workplaceType, employmentStatus, startDate);
+        this.nursingGrade = title != null ? title : "";
+    }
+    
+    public String getNursingGrade() {
+        return nursingGrade;
+    }
+    
+    public void setNursingGrade(String nursingGrade) {
+        this.nursingGrade = nursingGrade;
     }
 }
 

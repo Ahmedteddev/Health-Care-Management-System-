@@ -1,9 +1,6 @@
 package model;
 
-/**
- * Abstract base class for all users in the Healthcare Management System.
- * Provides common fields: username, password, and email.
- */
+// Base class for all users - has username, password, and email
 public abstract class User {
     
     private String username;

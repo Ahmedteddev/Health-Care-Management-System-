@@ -4,10 +4,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
-/**
- * PatientDashboardPanel - Panel version of PatientDashboard for use in CardLayout.
- * Displays patient's appointments and prescriptions.
- */
+// Patient dashboard panel - shows appointments and prescriptions
 public class PatientDashboardPanel extends JPanel {
     
     private JLabel welcomeLabel;

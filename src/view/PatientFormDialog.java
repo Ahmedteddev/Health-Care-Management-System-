@@ -155,10 +155,7 @@ public class PatientFormDialog extends JDialog {
         return formPanel;
     }
     
-    /**
-     * Returns a Patient object with the data from the form.
-     * Note: patientId should be set by the controller for new patients.
-     */
+    // Get the patient data from the form
     public Patient getPatientData() {
         Patient patient = new Patient();
         patient.setPatientId(patientIdField.getText().trim());
@@ -174,9 +171,7 @@ public class PatientFormDialog extends JDialog {
         return patient;
     }
     
-    /**
-     * Pre-fills the form fields with data from a Patient object.
-     */
+    // Fill the form with patient data
     public void setPatientData(Patient patient) {
         if (patient == null) {
             return;
@@ -199,16 +194,11 @@ public class PatientFormDialog extends JDialog {
         postcodeField.setText(patient.getPostcode() != null ? patient.getPostcode() : "");
     }
     
-    /**
-     * Sets the patient ID field (for new patients, ID is generated).
-     */
     public void setPatientId(String id) {
         patientIdField.setText(id);
     }
     
-    /**
-     * Makes the patient ID field editable (for new patients).
-     */
+    // Make the patient ID field editable
     public void setPatientIdEditable(boolean editable) {
         patientIdField.setEditable(editable);
     }
@@ -230,9 +220,6 @@ public class PatientFormDialog extends JDialog {
         this.saved = saved;
     }
     
-    /**
-     * Alias for isSaved() for compatibility with controller code.
-     */
     public boolean isConfirmed() {
         return saved;
     }

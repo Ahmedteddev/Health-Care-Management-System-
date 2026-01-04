@@ -1,9 +1,6 @@
 package model;
 
-/**
- * Admin class extending Staff.
- * Represents administrative staff with access level control.
- */
+// Admin class - for administrative staff
 public class Admin extends Staff {
     
     private String accessLevel;

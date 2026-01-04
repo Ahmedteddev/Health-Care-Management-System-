@@ -164,10 +164,7 @@ public class ClinicianFormDialog extends JDialog {
         return formPanel;
     }
     
-    /**
-     * Returns a Clinician object with the data from the form.
-     * Note: clinicianId should be set by the controller for new clinicians.
-     */
+    // Get the clinician data from the form
     public Clinician getClinicianData() {
         Clinician clinician = new Clinician();
         clinician.setClinicianId(clinicianIdField.getText().trim());
@@ -184,9 +181,7 @@ public class ClinicianFormDialog extends JDialog {
         return clinician;
     }
     
-    /**
-     * Pre-fills the form fields with data from a Clinician object.
-     */
+    // Fill the form with clinician data
     public void setClinicianData(Clinician clinician) {
         if (clinician == null) {
             return;
@@ -210,16 +205,11 @@ public class ClinicianFormDialog extends JDialog {
         startDateField.setText(clinician.getStartDate() != null ? clinician.getStartDate() : "");
     }
     
-    /**
-     * Sets the clinician ID field (for new clinicians, ID is generated).
-     */
     public void setClinicianId(String id) {
         clinicianIdField.setText(id);
     }
     
-    /**
-     * Makes the clinician ID field editable (for new clinicians).
-     */
+    // Make the clinician ID field editable
     public void setClinicianIdEditable(boolean editable) {
         clinicianIdField.setEditable(editable);
     }

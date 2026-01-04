@@ -93,9 +93,6 @@ public class NavigationCard extends JPanel {
         logoutButton.addActionListener(e -> handleLogout());
     }
     
-    /**
-     * Style a button for consistent appearance with uniform MAX_WIDTH.
-     */
     private void styleButton(JButton button) {
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         button.setMaximumSize(new Dimension(180, 40)); // Consistent MAX_WIDTH
@@ -103,9 +100,6 @@ public class NavigationCard extends JPanel {
         button.setMargin(new Insets(10, 10, 10, 10));
     }
     
-    /**
-     * Setup the main layout using BorderLayout.
-     */
     private void setupLayout() {
         setLayout(new BorderLayout(10, 10));
         
@@ -119,9 +113,6 @@ public class NavigationCard extends JPanel {
         addCardsToLayout();
     }
     
-    /**
-     * Add all required cards to the CardLayout panel.
-     */
     private void addCardsToLayout() {
         // MEDICAL: MedicalRecordPanel (Vertical scrollable version)
         MedicalRecordPanel medicalPanel = new MedicalRecordPanel();
@@ -224,9 +215,7 @@ public class NavigationCard extends JPanel {
         sidebarPanel.repaint();
     }
     
-    /**
-     * Handle logout action: Close current window and restart LoginView.
-     */
+    // Close current window and restart LoginView
     private void handleLogout() {
         int confirm = JOptionPane.showConfirmDialog(
             this,
@@ -251,16 +240,10 @@ public class NavigationCard extends JPanel {
         }
     }
     
-    /**
-     * Get the center panel (for controller injection if needed).
-     */
     public JPanel getCenterPanel() {
         return centerPanel;
     }
     
-    /**
-     * Get the CardLayout (for programmatic card switching if needed).
-     */
     public CardLayout getCardLayout() {
         return cardLayout;
     }
@@ -270,16 +253,10 @@ public class NavigationCard extends JPanel {
         return userRole;
     }
     
-    /**
-     * Show a specific card by name.
-     */
     public void showCard(String cardName) {
         cardLayout.show(centerPanel, cardName);
     }
     
-    /**
-     * Get the MedicalRecordPanel (for controller initialization).
-     */
     public MedicalRecordPanel getMedicalRecordPanel() {
         Component[] components = centerPanel.getComponents();
         for (Component comp : components) {
@@ -294,9 +271,6 @@ public class NavigationCard extends JPanel {
         return null;
     }
     
-    /**
-     * Get the PatientManagementPanel (for controller initialization).
-     */
     public PatientManagementPanel getPatientManagementPanel() {
         Component[] components = centerPanel.getComponents();
         for (Component comp : components) {
@@ -311,9 +285,6 @@ public class NavigationCard extends JPanel {
         return null;
     }
     
-    /**
-     * Get the PatientDashboardPanel (for controller initialization).
-     */
     public PatientDashboardPanel getPatientDashboardPanel() {
         Component[] components = centerPanel.getComponents();
         for (Component comp : components) {
@@ -328,9 +299,6 @@ public class NavigationCard extends JPanel {
         return null;
     }
     
-    /**
-     * Get the AppointmentPanel (for controller initialization).
-     */
     public AppointmentPanel getAppointmentPanel() {
         Component[] components = centerPanel.getComponents();
         for (Component comp : components) {
@@ -345,9 +313,6 @@ public class NavigationCard extends JPanel {
         return null;
     }
     
-    /**
-     * Get the StaffManagementPanel (for controller initialization).
-     */
     public StaffManagementPanel getStaffManagementPanel() {
         Component[] components = centerPanel.getComponents();
         for (Component comp : components) {

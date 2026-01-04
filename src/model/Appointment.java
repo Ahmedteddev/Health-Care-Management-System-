@@ -1,11 +1,6 @@
 package model;
 
-/**
- * Appointment class representing patient appointments.
- * Matches CSV structure: appointment_id, patient_id, clinician_id, facility_id,
- * appointment_date, appointment_time, duration_minutes, appointment_type,
- * status, reason_for_visit, notes, created_date, last_modified
- */
+// Appointment class - matches the appointments.csv file structure
 public class Appointment {
     
     private String appointmentId;
@@ -25,9 +20,7 @@ public class Appointment {
     public Appointment() {
     }
     
-    /**
-     * Full-parameter constructor for CSV loading (all 13 fields).
-     */
+    // Constructor for loading from CSV - all 13 fields
     public Appointment(String appointmentId, String patientId, String clinicianId,
                        String facilityId, String appointmentDate,
                        String appointmentTime, String durationMinutes,
@@ -50,7 +43,6 @@ public class Appointment {
         this.lastModified = lastModified;
     }
     
-    // Backward compatibility methods
     public String getId() {
         return appointmentId;
     }
@@ -59,9 +51,6 @@ public class Appointment {
         this.appointmentId = id;
     }
     
-    // ============================================================
-    // REQUIRED FIELDS (as per specification)
-    // ============================================================
     public String getAppointmentId() {
         return appointmentId;
     }
@@ -86,9 +75,6 @@ public class Appointment {
         this.reasonForVisit = reason;
     }
     
-    // ============================================================
-    // ALL CSV FIELDS - GETTERS AND SETTERS
-    // ============================================================
     public String getPatientId() {
         return patientId;
     }

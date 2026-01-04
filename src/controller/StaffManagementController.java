@@ -31,6 +31,8 @@ public class StaffManagementController {
     }
     
     private List<Staff> allStaffList = new ArrayList<>();
+    private List<Staff> adminStaffList = new ArrayList<>();
+    private List<Clinician> clinicianList = new ArrayList<>();
     
     private void bind() {
         view.getAddAdminStaffButton().addActionListener(new AddStaffListener());
@@ -41,35 +43,54 @@ public class StaffManagementController {
         
         view.getSearchField().addActionListener(new SearchFilterListener());
         
-        view.getStaffTable().getSelectionModel().addListSelectionListener(new StaffSelectionListener());
+        // Add listeners to both tables
+        view.getTopStaffTable().getSelectionModel().addListSelectionListener(new StaffSelectionListener());
+        view.getBottomClinicianTable().getSelectionModel().addListSelectionListener(new StaffSelectionListener());
     }
     
-    // combines both staff and clinicians into one list for the table
+    // Loads staff into two separate tables
+    // Using 'instanceof' to figure out which table the person belongs to
     public void loadStaffTable() {
         allStaffList.clear();
+        adminStaffList.clear();
+        clinicianList.clear();
+        
+        // Get all staff from repository
         allStaffList.addAll(staffRepository.getAllStaff());
         allStaffList.addAll(clinicianRepository.getAll());
-        view.setStaff(allStaffList);
+        
+        // Loop through the staff list and separate them
+        for (Staff staff : allStaffList) {
+            // If an object is an instanceof Clinician, send it to the bottom table
+            if (staff instanceof Clinician) {
+                clinicianList.add((Clinician) staff);
+            } else {
+                // Otherwise, send it to the top table (Administrative Staff)
+                adminStaffList.add(staff);
+            }
+        }
+        
+        // Update both tables
+        view.setAdminStaff(adminStaffList);
+        view.setClinicians(clinicianList);
     }
     
     private void filterStaff() {
         String searchTerm = view.getSearchField().getText().toLowerCase().trim();
         String selectedRole = (String) view.getFilterComboBox().getSelectedItem();
         
-        List<Staff> filteredList = new ArrayList<>();
+        List<Staff> filteredAdminStaffList = new ArrayList<>();
+        List<Clinician> filteredClinicianList = new ArrayList<>();
         
-        for (Staff staff : allStaffList) {
+        // Filter Administrative Staff
+        for (Staff staff : adminStaffList) {
             boolean roleMatches = false;
             if ("All".equals(selectedRole)) {
                 roleMatches = true;
             } else {
                 String staffRole = staff.getRole();
-                if (staffRole != null) {
-                    if (selectedRole.equals(staffRole) || 
-                        (selectedRole.equals("Nurse") && staffRole.contains("Nurse")) ||
-                        (selectedRole.equals("Consultant") && staffRole.contains("Consultant"))) {
-                        roleMatches = true;
-                    }
+                if (staffRole != null && selectedRole.equals(staffRole)) {
+                    roleMatches = true;
                 }
             }
             
@@ -78,7 +99,7 @@ public class StaffManagementController {
             }
             
             if (searchTerm.isEmpty()) {
-                filteredList.add(staff);
+                filteredAdminStaffList.add(staff);
             } else {
                 String staffId = staff.getStaffId() != null ? staff.getStaffId().toLowerCase() : "";
                 String firstName = staff.getFirstName() != null ? staff.getFirstName().toLowerCase() : "";
@@ -89,12 +110,58 @@ public class StaffManagementController {
                     firstName.contains(searchTerm) || 
                     lastName.contains(searchTerm) ||
                     email.contains(searchTerm)) {
-                    filteredList.add(staff);
+                    filteredAdminStaffList.add(staff);
                 }
             }
         }
         
-        view.setStaff(filteredList);
+        // Filter Clinicians
+        for (Clinician clinician : clinicianList) {
+            boolean roleMatches = false;
+            if ("All".equals(selectedRole)) {
+                roleMatches = true;
+            } else {
+                // Check if clinician type matches
+                String clinicianType = "Clinician";
+                if (clinician instanceof model.GP) {
+                    clinicianType = "GP";
+                } else if (clinician instanceof model.Nurse) {
+                    clinicianType = "Nurse";
+                } else if (clinician instanceof model.Specialist) {
+                    clinicianType = "Consultant";
+                }
+                
+                if (selectedRole.equals(clinicianType) || 
+                    (selectedRole.equals("Nurse") && clinicianType.equals("Nurse")) ||
+                    (selectedRole.equals("Consultant") && clinicianType.equals("Consultant"))) {
+                    roleMatches = true;
+                }
+            }
+            
+            if (!roleMatches) {
+                continue;
+            }
+            
+            if (searchTerm.isEmpty()) {
+                filteredClinicianList.add(clinician);
+            } else {
+                String clinicianId = clinician.getClinicianId() != null ? clinician.getClinicianId().toLowerCase() : "";
+                String firstName = clinician.getFirstName() != null ? clinician.getFirstName().toLowerCase() : "";
+                String lastName = clinician.getLastName() != null ? clinician.getLastName().toLowerCase() : "";
+                String email = clinician.getEmail() != null ? clinician.getEmail().toLowerCase() : "";
+                
+                if (clinicianId.contains(searchTerm) || 
+                    firstName.contains(searchTerm) || 
+                    lastName.contains(searchTerm) ||
+                    email.contains(searchTerm)) {
+                    filteredClinicianList.add(clinician);
+                }
+            }
+        }
+        
+        // Update both tables with filtered results
+        view.setAdminStaff(filteredAdminStaffList);
+        view.setClinicians(filteredClinicianList);
     }
     
     private class SearchFilterListener implements ActionListener {
@@ -203,9 +270,11 @@ public class StaffManagementController {
             }
             
             String role = view.getSelectedRole();
+            boolean isFromClinicianTable = view.isSelectedFromClinicianTable();
             
-            // clinicians (GP/Nurse) need special handling since they're in both repositories
-            if ("GP".equals(role) || "Nurse".equals(role) || role != null && (role.contains("Consultant") || role.contains("Nurse"))) {
+            // clinicians (GP/Nurse/Specialist) need special handling since they're in both repositories
+            // Using 'instanceof' to figure out which table the person belongs to
+            if (isFromClinicianTable || "GP".equals(role) || "Nurse".equals(role) || "Specialist".equals(role) || role != null && (role.contains("Consultant") || role.contains("Nurse"))) {
                 Staff staff = staffRepository.findStaffById(staffId);
                 Clinician foundClinician = clinicianRepository.findById(staffId);
                 
@@ -310,6 +379,7 @@ public class StaffManagementController {
             }
             
             String role = view.getSelectedRole();
+            boolean isFromClinicianTable = view.isSelectedFromClinicianTable();
             Staff staff = staffRepository.findStaffById(staffId);
             Clinician clinician = clinicianRepository.findById(staffId);
             
@@ -331,7 +401,8 @@ public class StaffManagementController {
             
             if (result == JOptionPane.YES_OPTION) {
                 // need to delete from both repositories if it's a clinician
-                if ("GP".equals(role) || "Nurse".equals(role) || role != null && (role.contains("Consultant") || role.contains("Nurse"))) {
+                // Using 'instanceof' to figure out which table the person belongs to
+                if (isFromClinicianTable || "GP".equals(role) || "Nurse".equals(role) || "Specialist".equals(role) || role != null && (role.contains("Consultant") || role.contains("Nurse"))) {
                     if (clinician != null) {
                         clinicianRepository.remove(clinician);
                         clinicianRepository.saveAll();
@@ -357,8 +428,18 @@ public class StaffManagementController {
         @Override
         public void valueChanged(ListSelectionEvent e) {
             if (!e.getValueIsAdjusting()) {
-                boolean hasSelection = view.getSelectedRow() >= 0;
+                // Check if either table has a selection
+                boolean hasSelection = view.getTopStaffTable().getSelectedRow() >= 0 || 
+                                      view.getBottomClinicianTable().getSelectedRow() >= 0;
                 view.setEditRemoveButtonsEnabled(hasSelection);
+                
+                // Clear selection from the other table when one is selected
+                if (view.getTopStaffTable().getSelectedRow() >= 0) {
+                    view.getBottomClinicianTable().clearSelection();
+                }
+                if (view.getBottomClinicianTable().getSelectedRow() >= 0) {
+                    view.getTopStaffTable().clearSelection();
+                }
             }
         }
     }
@@ -382,7 +463,7 @@ public class StaffManagementController {
     }
     
     public JTable getStaffTable() {
-        return view.getStaffTable();
+        return view.getTopStaffTable();
     }
 }
 

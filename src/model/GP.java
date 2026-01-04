@@ -1,10 +1,9 @@
 package model;
 
-/**
- * GP (General Practitioner) class extending Clinician.
- * Represents General Practice doctors.
- */
+// GP class - for General Practice doctors
 public class GP extends Clinician {
+    
+    private String surgeryName;
     
     public GP() {
         super();
@@ -16,7 +15,6 @@ public class GP extends Clinician {
         super(username, password, email, staffId, department, hireDate, qualification);
     }
     
-    // Backward compatibility constructor
     public GP(String clinicianId, String firstName, String lastName,
               String title, String speciality, String gmcNumber,
               String phone, String email, String workplaceId,
@@ -24,6 +22,15 @@ public class GP extends Clinician {
               String startDate) {
         super(clinicianId, firstName, lastName, title, speciality, gmcNumber,
               phone, email, workplaceId, workplaceType, employmentStatus, startDate);
+        this.surgeryName = workplaceType != null ? workplaceType : "";
+    }
+    
+    public String getSurgeryName() {
+        return surgeryName;
+    }
+    
+    public void setSurgeryName(String surgeryName) {
+        this.surgeryName = surgeryName;
     }
 }
 

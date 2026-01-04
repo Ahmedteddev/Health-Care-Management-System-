@@ -69,12 +69,7 @@ public class PrescriptionRepository {
         return prescriptions;
     }
     
-    /**
-     * Gets all prescriptions for a specific patient ID.
-     * 
-     * @param patientId The patient ID (e.g., "P001")
-     * @return List of prescriptions for the patient
-     */
+    // Get all prescriptions for a patient
     public List<Prescription> getByPatientId(String patientId) {
         List<Prescription> result = new ArrayList<>();
         if (patientId == null || patientId.isEmpty()) {
@@ -88,9 +83,7 @@ public class PrescriptionRepository {
         return result;
     }
 
-    // ============================================================
-    // AUTO-GENERATE RX IDs
-    // ============================================================
+    // Generate a new prescription ID (RX001, RX002, etc.)
     public String generateNewId() {
         int max = 0;
         for (Prescription p : prescriptions) {
@@ -100,14 +93,12 @@ public class PrescriptionRepository {
                     int num = Integer.parseInt(id.substring(2));
                     if (num > max) max = num;
                 }
-            } catch (Exception ignore) {}
+            } catch (Exception ignore) {
+            }
         }
         return String.format("RX%03d", max + 1);
     }
 
-    // ============================================================
-    // DROPDOWN OPTIONS
-    // ============================================================
     public List<String> getMedicationOptions() {
         Set<String> meds = new TreeSet<>();
         for (Prescription p : prescriptions) {
@@ -126,9 +117,7 @@ public class PrescriptionRepository {
         return new ArrayList<>(pharms);
     }
 
-    // ============================================================
-    // ADD + APPEND TO CSV
-    // ============================================================
+    // Add a new prescription and append to CSV
     public void addAndAppend(Prescription p) {
 
         prescriptions.add(p);
@@ -157,13 +146,8 @@ public class PrescriptionRepository {
         }
     }
     
-    // ============================================================
-    // GENERATE PRESCRIPTION .TXT FILE
-    // ============================================================
-    // Method to generate prescription file with practitioner details
-    // Saves to src/data/prescription folder (similar to referrals)
+    // Generate a prescription text file and save it
     public void generatePrescriptionFile(Prescription p, String practitionerName, String practitionerId) {
-        // Create prescription directory in data folder if it doesn't exist
         File prescriptionDir = new File("src/data/prescription");
         if (!prescriptionDir.exists()) {
             prescriptionDir.mkdirs(); // Use mkdirs() to create parent directories if needed
@@ -215,31 +199,19 @@ public class PrescriptionRepository {
 
     public void removeById(String id) {
         prescriptions.removeIf(p -> p.getId().equals(id));
-        // No CSV rewrite—acceptable for coursework
     }
     
-    /**
-     * Deletes all prescriptions for a specific patient.
-     * Alias method to match user's method name requirement.
-     * 
-     * @param patientId The patient ID whose prescriptions should be deleted
-     */
     public void deleteByPatientId(String patientId) {
         deleteAllByPatientId(patientId);
     }
     
-    /**
-     * Deletes all prescriptions for a specific patient.
-     * 
-     * @param patientId The patient ID whose prescriptions should be deleted
-     */
+    // Delete all prescriptions for a patient
     public void deleteAllByPatientId(String patientId) {
         if (patientId == null || patientId.isEmpty()) {
             System.err.println("Cannot delete prescriptions: patient ID is null or empty.");
             return;
         }
         
-        // Count how many will be removed
         int removedCount = 0;
         for (Prescription p : prescriptions) {
             if (patientId.equals(p.getPatientId())) {
@@ -247,27 +219,20 @@ public class PrescriptionRepository {
             }
         }
         
-        // Remove all prescriptions matching the patient ID
         prescriptions.removeIf(prescription -> patientId.equals(prescription.getPatientId()));
-        
-        // Save updated list to CSV
         saveAll();
         
         System.out.println("Deleted " + removedCount + " prescription(s) for patient " + patientId);
     }
     
-    /**
-     * Saves all prescriptions to the CSV file.
-     */
+    // Save all prescriptions back to CSV
     public void saveAll() {
         try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(csvPath))) {
-            // Write header
             bw.write("prescription_id,patient_id,clinician_id,appointment_id,prescription_date,");
             bw.write("medication_name,dosage,frequency,duration_days,quantity,instructions,");
             bw.write("pharmacy_name,status,issue_date,collection_date");
             bw.newLine();
             
-            // Write all prescriptions
             for (Prescription p : prescriptions) {
                 bw.write(escapeCsv(p.getId()) + ",");
                 bw.write(escapeCsv(p.getPatientId()) + ",");
@@ -293,9 +258,7 @@ public class PrescriptionRepository {
         }
     }
     
-    /**
-     * Escapes CSV values that contain commas or quotes.
-     */
+    // Escape commas and quotes in CSV values
     private String escapeCsv(String value) {
         if (value == null) {
             return "";

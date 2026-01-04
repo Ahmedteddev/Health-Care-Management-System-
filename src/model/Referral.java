@@ -1,13 +1,6 @@
 package model;
 
-/**
- * Referral class representing patient referrals.
- * Matches CSV structure with all 16 fields:
- * referral_id, patient_id, referring_clinician_id, referred_to_clinician_id,
- * referring_facility_id, referred_to_facility_id, referral_date, urgency_level,
- * referral_reason, clinical_summary, requested_investigations, status,
- * appointment_id, notes, created_date, last_updated
- */
+// Referral class - matches the referrals.csv file structure (all 16 fields)
 public class Referral {
     
     private String referralId;
@@ -30,9 +23,7 @@ public class Referral {
     public Referral() {
     }
     
-    /**
-     * Full-parameter constructor for CSV loading (all 16 fields).
-     */
+    // Constructor for loading from CSV - all 16 fields
     public Referral(String referralId, String patientId, String referringClinicianId,
                     String referredToClinicianId, String referringFacilityId,
                     String referredToFacilityId, String referralDate,
@@ -59,7 +50,6 @@ public class Referral {
         this.lastUpdated = lastUpdated;
     }
     
-    // Backward compatibility methods
     public String getId() {
         return referralId;
     }
@@ -68,9 +58,6 @@ public class Referral {
         this.referralId = id;
     }
     
-    // ============================================================
-    // REQUIRED FIELDS (as per specification)
-    // ============================================================
     public String getReferralId() {
         return referralId;
     }
@@ -103,9 +90,6 @@ public class Referral {
         this.urgencyLevel = urgency;
     }
     
-    // ============================================================
-    // ALL CSV FIELDS - GETTERS AND SETTERS
-    // ============================================================
     public String getPatientId() {
         return patientId;
     }

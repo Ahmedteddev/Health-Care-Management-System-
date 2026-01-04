@@ -1,9 +1,6 @@
 package model;
 
-/**
- * Represents a patient's medical record.
- * Contains allergies, blood type, and medical history.
- */
+// Medical record - stores allergies, blood type, and medical history for a patient
 public class MedicalRecord {
     
     private String patientId;

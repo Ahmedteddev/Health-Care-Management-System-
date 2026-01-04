@@ -1,15 +1,12 @@
 package model;
 
-/**
- * Patient class extending User.
- * Represents a patient in the Healthcare Management System with demographic data.
- */
+// Patient class - stores all the patient info like name, DOB, NHS number, etc.
 public class Patient extends User {
     
     private String patientId;
     private String firstName;
     private String lastName;
-    private String dateOfBirth;  // dob
+    private String dateOfBirth;
     private String nhsNumber;
     private String gender;
     private String phoneNumber;
@@ -46,13 +43,12 @@ public class Patient extends User {
         this.gpSurgeryId = gpSurgeryId;
     }
     
-    // Backward compatibility constructor (for CSV loading)
+    // Constructor for loading from CSV
     public Patient(String patientId, String firstName, String lastName,
                    String dateOfBirth, String nhsNumber, String gender,
                    String phoneNumber, String email, String address, String postcode,
                    String emergencyContactName, String emergencyContactPhone,
                    String registrationDate, String gpSurgeryId) {
-        // Generate username from email or patientId, default password
         super(generateUsername(email, patientId), "default", email);
         this.patientId = patientId;
         this.firstName = firstName;
@@ -76,7 +72,6 @@ public class Patient extends User {
         return patientId;
     }
     
-    // Backward compatibility for older code
     public String getName() {
         return getFullName();
     }
@@ -89,9 +84,6 @@ public class Patient extends User {
         this.patientId = id;
     }
     
-    // ============================================================
-    // GETTERS
-    // ============================================================
     public String getPatientId() {
         return patientId;
     }

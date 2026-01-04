@@ -123,12 +123,7 @@ public class AppointmentRepository {
         return null;
     }
     
-    /**
-     * Gets all appointments for a specific patient ID.
-     * 
-     * @param patientId The patient ID (e.g., "P001")
-     * @return List of appointments for the patient
-     */
+    // Get all appointments for a patient
     public List<Appointment> getByPatientId(String patientId) {
         List<Appointment> result = new ArrayList<>();
         if (patientId == null || patientId.isEmpty()) {
@@ -142,28 +137,17 @@ public class AppointmentRepository {
         return result;
     }
     
-    /**
-     * Deletes all appointments for a specific patient.
-     * Alias method to match user's method name requirement.
-     * 
-     * @param patientId The patient ID whose appointments should be deleted
-     */
     public void deleteByPatientId(String patientId) {
         deleteAllByPatientId(patientId);
     }
     
-    /**
-     * Deletes all appointments for a specific patient.
-     * 
-     * @param patientId The patient ID whose appointments should be deleted
-     */
+    // Delete all appointments for a patient
     public void deleteAllByPatientId(String patientId) {
         if (patientId == null || patientId.isEmpty()) {
             System.err.println("Cannot delete appointments: patient ID is null or empty.");
             return;
         }
         
-        // Count how many will be removed
         int removedCount = 0;
         for (Appointment a : appointments) {
             if (patientId.equals(a.getPatientId())) {
@@ -171,10 +155,7 @@ public class AppointmentRepository {
             }
         }
         
-        // Remove all appointments matching the patient ID
         appointments.removeIf(appointment -> patientId.equals(appointment.getPatientId()));
-        
-        // Save updated list to CSV
         saveAll();
         
         System.out.println("Deleted " + removedCount + " appointment(s) for patient " + patientId);
@@ -182,13 +163,11 @@ public class AppointmentRepository {
 
     public void saveAll() {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(csvPath))) {
-            // Write header
             bw.write("appointment_id,patient_id,clinician_id,facility_id,appointment_date,");
             bw.write("appointment_time,duration_minutes,appointment_type,status,reason_for_visit,");
             bw.write("notes,created_date,last_modified");
             bw.newLine();
             
-            // Write all appointments
             for (Appointment a : appointments) {
                 bw.write(escapeCsv(a.getId()) + ",");
                 bw.write(escapeCsv(a.getPatientId()) + ",");
@@ -210,9 +189,7 @@ public class AppointmentRepository {
         }
     }
     
-    /**
-     * Escapes CSV values that contain commas or quotes.
-     */
+    // Escape commas and quotes in CSV values
     private String escapeCsv(String value) {
         if (value == null) {
             return "";

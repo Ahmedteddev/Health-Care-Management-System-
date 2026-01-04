@@ -1,10 +1,9 @@
 package model;
 
-/**
- * Specialist class extending Clinician.
- * Represents specialist doctors (consultants).
- */
+// Specialist class - for consultant doctors
 public class Specialist extends Clinician {
+    
+    private String specialtyArea;
     
     public Specialist() {
         super();
@@ -16,7 +15,6 @@ public class Specialist extends Clinician {
         super(username, password, email, staffId, department, hireDate, qualification);
     }
     
-    // Backward compatibility constructor
     public Specialist(String clinicianId, String firstName, String lastName,
                       String title, String speciality, String gmcNumber,
                       String phone, String email, String workplaceId,
@@ -24,6 +22,15 @@ public class Specialist extends Clinician {
                       String startDate) {
         super(clinicianId, firstName, lastName, title, speciality, gmcNumber,
               phone, email, workplaceId, workplaceType, employmentStatus, startDate);
+        this.specialtyArea = speciality != null ? speciality : "";
+    }
+    
+    public String getSpecialtyArea() {
+        return specialtyArea;
+    }
+    
+    public void setSpecialtyArea(String specialtyArea) {
+        this.specialtyArea = specialtyArea;
     }
 }
 
