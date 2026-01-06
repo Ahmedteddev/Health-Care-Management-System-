@@ -2,24 +2,27 @@ package view;
 
 import model.Patient;
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.util.List;
 
 public class PatientManagementPanel extends JPanel {
     
     private JTable patientTable;
-    private PatientTableModel tableModel;
-    private JTextField patientIdField;
-    private JTextField patientNameField;
-    private JTextField nhsNumberField;
-    private JButton searchButton;
-    private JButton registerPatientButton;
-    private JButton editPatientButton;
-    private JButton deletePatientButton;
+    private DefaultTableModel tableModel;
     
-    // Table column names
+    // Search Fields (Preserved for functionality)
+    private JTextField idField, nameField, nhsField;
+    
+    // Buttons (Renamed to match Appointment style naming)
+    private JButton searchButton;
+    private JButton registerButton;
+    private JButton editButton;
+    private JButton deleteButton;
+    
     private static final String[] COLUMN_NAMES = {
-        "ID", "First Name", "Last Name", "DOB", "NHS Number", "Gender", "Contact"
+        "ID", "First", "Last", "DOB", "NHS No", "Gender", "Phone", 
+        "Email", "Address", "Postcode", "E-Name", "E-Phone", "Reg Date", "GP ID"
     };
     
     public PatientManagementPanel() {
@@ -28,282 +31,108 @@ public class PatientManagementPanel extends JPanel {
     }
     
     private void initializeComponents() {
-        tableModel = new PatientTableModel();
-        patientTable = new JTable(tableModel);
-        patientTable.setRowHeight(25);
-        patientTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        patientTable.getTableHeader().setReorderingAllowed(false);
+        tableModel = new DefaultTableModel(COLUMN_NAMES, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
         
-        // Search fields
-        patientIdField = new JTextField(15);
-        patientNameField = new JTextField(15);
-        nhsNumberField = new JTextField(15);
+        patientTable = new JTable(tableModel);
+        patientTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        patientTable.setRowHeight(25);
+        patientTable.getTableHeader().setReorderingAllowed(false);
+        // Allows horizontal scrolling for the 14 columns
+        patientTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); 
+        
+        // Search Components
+        idField = new JTextField(10);
+        nameField = new JTextField(10);
+        nhsField = new JTextField(10);
         searchButton = new JButton("Search");
         
-        registerPatientButton = new JButton("Register New");
-        editPatientButton = new JButton("Edit");
-        deletePatientButton = new JButton("Delete");
+        // Action Buttons
+        registerButton = new JButton("Register New");
+        editButton = new JButton("Edit");
+        deleteButton = new JButton("Delete");
         
-        editPatientButton.setEnabled(false);
-        deletePatientButton.setEnabled(false);
+        editButton.setEnabled(false);
+        deleteButton.setEnabled(false);
     }
     
     private void setupLayout() {
-        setLayout(new java.awt.BorderLayout(15, 15));
-        setBorder(javax.swing.BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        setLayout(new BorderLayout(15, 15));
+        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
-        // Top panel with heading and search
+        // Top Panel (Heading + Search stacked vertically)
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
         
-        // Heading
-        JPanel headingPanel = createHeadingPanel();
+        // 1. Heading (Style copied from AppointmentPanel)
+        JPanel headingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
+        JLabel headingLabel = new JLabel("Patient Management");
+        headingLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+        headingPanel.add(headingLabel);
         topPanel.add(headingPanel);
+        
         topPanel.add(Box.createVerticalStrut(10));
         
-        // Search panel
-        JPanel searchPanel = createSearchPanel();
-        topPanel.add(searchPanel);
+        // 2. Search Panel (Consistent with AppointmentPanel Titled Border)
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        searchPanel.setBorder(BorderFactory.createTitledBorder("Search Filters"));
         
-        add(topPanel, java.awt.BorderLayout.NORTH);
-        
-        // Table with scroll pane
-        JScrollPane scrollPane = new JScrollPane(patientTable);
-        scrollPane.setBorder(javax.swing.BorderFactory.createTitledBorder("Patients"));
-        add(scrollPane, java.awt.BorderLayout.CENTER);
-        
-        // Button panel
-        JPanel buttonPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 5));
-        buttonPanel.add(registerPatientButton);
-        buttonPanel.add(editPatientButton);
-        buttonPanel.add(deletePatientButton);
-        add(buttonPanel, java.awt.BorderLayout.SOUTH);
-    }
-    
-    private JPanel createHeadingPanel() {
-        JPanel headingPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 5));
-        JLabel headingLabel = new JLabel("Patient Management");
-        headingLabel.setFont(new java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.BOLD, 18));
-        headingPanel.add(headingLabel);
-        return headingPanel;
-    }
-    
-    private JPanel createSearchPanel() {
-        JPanel searchPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 5));
-        searchPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Patient Search"));
-        
-        searchPanel.add(new JLabel("Patient ID:"));
-        searchPanel.add(patientIdField);
+        searchPanel.add(new JLabel("ID:"));
+        searchPanel.add(idField);
         searchPanel.add(new JLabel("Name:"));
-        searchPanel.add(patientNameField);
-        searchPanel.add(new JLabel("NHS Number:"));
-        searchPanel.add(nhsNumberField);
+        searchPanel.add(nameField);
+        searchPanel.add(new JLabel("NHS:"));
+        searchPanel.add(nhsField);
         searchPanel.add(searchButton);
         
-        return searchPanel;
+        topPanel.add(searchPanel);
+        add(topPanel, BorderLayout.NORTH);
+        
+        // Central Table (Center)
+        JScrollPane tableScrollPane = new JScrollPane(patientTable);
+        tableScrollPane.setBorder(BorderFactory.createTitledBorder("Patient Records"));
+        add(tableScrollPane, BorderLayout.CENTER);
+        
+        // Action Footer (South - Right Aligned)
+        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        actionPanel.add(registerButton);
+        actionPanel.add(editButton);
+        actionPanel.add(deleteButton);
+        
+        add(actionPanel, BorderLayout.SOUTH);
     }
     
-    // Custom TableModel for inline editing
-    public class PatientTableModel extends AbstractTableModel {
-        private List<Patient> patients;
-        
-        public PatientTableModel() {
-            this.patients = new java.util.ArrayList<>();
-        }
-        
-        public void setPatients(List<Patient> patients) {
-            this.patients = patients != null ? new java.util.ArrayList<>(patients) : new java.util.ArrayList<>();
-            fireTableDataChanged();
-        }
-        
-        @Override
-        public int getRowCount() {
-            return patients.size();
-        }
-        
-        @Override
-        public int getColumnCount() {
-            return COLUMN_NAMES.length;
-        }
-        
-        @Override
-        public String getColumnName(int column) {
-            return COLUMN_NAMES[column];
-        }
-        
-        @Override
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            if (rowIndex >= patients.size()) {
-                return "";
-            }
-            
-            Patient patient = patients.get(rowIndex);
-            switch (columnIndex) {
-                case 0: return patient.getPatientId();
-                case 1: return patient.getFirstName();
-                case 2: return patient.getLastName();
-                case 3: return patient.getDateOfBirth();
-                case 4: return patient.getNhsNumber();
-                case 5: return patient.getGender();
-                case 6: return patient.getPhoneNumber() != null ? patient.getPhoneNumber() : patient.getEmail();
-                default: return "";
-            }
-        }
-        
-        @Override
-        public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-            if (rowIndex >= patients.size()) {
-                return;
-            }
-            
-            Patient patient = patients.get(rowIndex);
-            String value = aValue != null ? aValue.toString() : "";
-            
-            switch (columnIndex) {
-                case 0: 
-                    // ID is not editable
-                    break;
-                case 1: 
-                    patient.setFirstName(value);
-                    break;
-                case 2: 
-                    patient.setLastName(value);
-                    break;
-                case 3: 
-                    patient.setDateOfBirth(value);
-                    break;
-                case 4: 
-                    patient.setNhsNumber(value);
-                    break;
-                case 5: 
-                    patient.setGender(value);
-                    break;
-                case 6: 
-                    // Contact - update phone number if it looks like a phone, otherwise email
-                    if (value.contains("@")) {
-                        patient.setEmail(value);
-                    } else {
-                        patient.setPhoneNumber(value);
-                    }
-                    break;
-            }
-            
-            fireTableCellUpdated(rowIndex, columnIndex);
-        }
-        
-        @Override
-        public boolean isCellEditable(int rowIndex, int columnIndex) {
-            // Make all cells non-editable (disable inline editing)
-            return false;
-        }
-        
-        public Patient getPatientAt(int rowIndex) {
-            if (rowIndex >= 0 && rowIndex < patients.size()) {
-                return patients.get(rowIndex);
-            }
-            return null;
-        }
-        
-        public void addPatient(Patient patient) {
-            patients.add(patient);
-            fireTableRowsInserted(patients.size() - 1, patients.size() - 1);
-        }
-        
-        public void removePatient(int rowIndex) {
-            if (rowIndex >= 0 && rowIndex < patients.size()) {
-                patients.remove(rowIndex);
-                fireTableRowsDeleted(rowIndex, rowIndex);
-            }
+    public void updateTable(List<Patient> list) {
+        tableModel.setRowCount(0);
+        for (Patient p : list) {
+            tableModel.addRow(new Object[]{
+                p.getPatientId(), p.getFirstName(), p.getLastName(), p.getDateOfBirth(),
+                p.getNhsNumber(), p.getGender(), p.getPhoneNumber(), p.getEmail(),
+                p.getAddress(), p.getPostcode(), p.getEmergencyContactName(),
+                p.getEmergencyContactPhone(), p.getRegistrationDate(), p.getGpSurgeryId()
+            });
         }
     }
-    
-    // Public methods
-    public void setPatients(List<Patient> patients) {
-        tableModel.setPatients(patients);
-    }
-    
-    public int getSelectedRow() {
-        return patientTable.getSelectedRow();
-    }
-    
-    public Patient getSelectedPatient() {
-        int row = patientTable.getSelectedRow();
-        if (row >= 0) {
-            return tableModel.getPatientAt(row);
-        }
-        return null;
-    }
-    
+
     public String getSelectedPatientId() {
-        Patient patient = getSelectedPatient();
-        return patient != null ? patient.getPatientId() : null;
-    }
-    
-    public void addPatient(Patient patient) {
-        tableModel.addPatient(patient);
-    }
-    
-    public void removeSelectedPatient() {
         int row = patientTable.getSelectedRow();
-        if (row >= 0) {
-            tableModel.removePatient(row);
-        }
+        return (row >= 0) ? (String) tableModel.getValueAt(row, 0) : null;
     }
+
+    // --- Getters for Controller ---
+    public JTable getPatientTable() { return patientTable; }
+    public JTextField getPatientIdField() { return idField; }
+    public JTextField getPatientNameField() { return nameField; }
+    public JTextField getNhsNumberField() { return nhsField; }
+    public JButton getSearchButton() { return searchButton; }
+    public JButton getRegisterButton() { return registerButton; }
+    public JButton getEditButton() { return editButton; }
+    public JButton getDeleteButton() { return deleteButton; }
     
-    public void refreshTable() {
-        tableModel.fireTableDataChanged();
-    }
-    
-    // Update the table with a list of patients
-    public void updateTable(List<Patient> patients) {
-        // Clear the existing DefaultTableModel and repopulate it with the new list
-        tableModel.setPatients(patients);
-    }
-    
-    // Button getters
-    public JButton getRegisterPatientButton() {
-        return registerPatientButton;
-    }
-    
-    public JButton getEditPatientButton() {
-        return editPatientButton;
-    }
-    
-    public JButton getDeletePatientButton() {
-        return deletePatientButton;
-    }
-    
-    // Enable/disable edit and delete buttons
     public void setEditDeleteButtonsEnabled(boolean enabled) {
-        editPatientButton.setEnabled(enabled);
-        deletePatientButton.setEnabled(enabled);
-    }
-    
-    // Get table model for listener attachment
-    public PatientTableModel getTableModel() {
-        return tableModel;
-    }
-    
-    // Get patient table
-    public JTable getPatientTable() {
-        return patientTable;
-    }
-    
-    // Search field getters
-    public JTextField getPatientIdField() {
-        return patientIdField;
-    }
-    
-    public JTextField getPatientNameField() {
-        return patientNameField;
-    }
-    
-    public JTextField getNhsNumberField() {
-        return nhsNumberField;
-    }
-    
-    public JButton getSearchButton() {
-        return searchButton;
+        editButton.setEnabled(enabled);
+        deleteButton.setEnabled(enabled);
     }
 }
-

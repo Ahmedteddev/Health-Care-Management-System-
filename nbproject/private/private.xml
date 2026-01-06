@@ -9,10 +9,11 @@
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/Staff.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/PrescriptionRepository.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/Appointment.java</file>
-            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/Patient.java</file>
+            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/controller/PatientManagementController.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/Facility.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/data/referrals/Referral_John_Smith_2025-12-25.txt</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/AppointmentRepository.java</file>
+            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/controller/MedicalRecordController.java</file>
         </group>
     </open-files>
 </project-private>

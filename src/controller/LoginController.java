@@ -3,6 +3,7 @@ package controller;
 import model.*;
 import view.*;
 import javax.swing.*;
+import java.awt.*;
 
 public class LoginController {
     
@@ -38,147 +39,126 @@ public class LoginController {
     }
     
     private void handleLogin() {
-        // 1. Get and clean inputs
         String enteredUsername = loginScreen.getUsername().trim();
         String enteredPassword = loginScreen.getPassword();
         
+        // 1. Basic Validation
         if (enteredUsername.isEmpty() || enteredPassword.isEmpty()) {
-            JOptionPane.showMessageDialog(loginScreen, "Please enter both username and password.", "Login Error", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(loginScreen, "Please enter both credentials.", "Login Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        // 2. Validate Password 
+        // 2. Password Check (Universal test password)
         if (!enteredPassword.equals("12345")) {
-            System.out.println("Login Failed: Invalid password");
-            JOptionPane.showMessageDialog(loginScreen, "Invalid password. Use '12345' for testing.", "Login Failed", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(loginScreen, "Invalid password. (Hint: 12345)", "Access Denied", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // 3. REFRESH DATA (Crucial for new registrations)
-        // This ensures that if a patient just registered, they are now in the list
-        patientRepository.refresh(); 
-        
+        // 3. Determine User Role and Identity
         String userRole = null;
         String thePatientId = null;
 
-        // 4. Check for Patient Role
-        // We use the findById we fixed earlier which handles whitespace and case
+        // Check Patients
         Patient foundPatient = patientRepository.findById(enteredUsername);
-        
         if (foundPatient != null) {
             userRole = "Patient";
-            thePatientId = foundPatient.getPatientId(); // Use the actual ID from the object
-            System.out.println("Login: Found patient with ID: " + thePatientId);
+            thePatientId = foundPatient.getPatientId();
         } else {
-            // 5. Check for Clinician Role
+            // Check Clinicians Table directly
             Clinician foundClinician = clinicianRepository.findById(enteredUsername);
             if (foundClinician != null) {
                 userRole = "Clinician";
-                System.out.println("Login: Found clinician with ID: " + enteredUsername);
             } else {
-                // 6. Check for Staff Role
+                // Check General Staff Table
                 Staff foundStaff = staffRepository.findStaffById(enteredUsername);
                 if (foundStaff != null) {
-                    String staffJobTitle = foundStaff.getRole();
-                    
-                    if ("Clinician".equalsIgnoreCase(staffJobTitle) || "GP".equalsIgnoreCase(staffJobTitle) || 
-                        "Consultant".equalsIgnoreCase(staffJobTitle) || "Nurse".equalsIgnoreCase(staffJobTitle)) {
-                        userRole = "Clinician";
-                    } else if ("Practice Manager".equalsIgnoreCase(staffJobTitle) || 
-                               "Hospital Administrator".equalsIgnoreCase(staffJobTitle)) {
-                        userRole = "Admin";
-                    } else if ("Receptionist".equalsIgnoreCase(staffJobTitle)) {
-                        userRole = "Receptionist";
-                    } else {
-                        userRole = "Admin";
-                    }
-                    System.out.println("Login: Found staff with ID: " + enteredUsername + ", Role: " + userRole);
+                    userRole = mapStaffToRole(foundStaff.getRole());
                 } else {
-                    // 7. Hardcoded Testing Roles
-                    if (enteredUsername.equalsIgnoreCase("Clinician")) {
-                        userRole = "Clinician";
-                    } else if (enteredUsername.equalsIgnoreCase("Admin")) {
-                        userRole = "Admin";
-                    } else if (enteredUsername.equalsIgnoreCase("Receptionist")) {
-                        userRole = "Receptionist";
-                    } else if (enteredUsername.equalsIgnoreCase("Developer")) {
-                        userRole = "Developer";
-                    }
+                    // Developer/Backdoor Roles
+                    userRole = handleDeveloperRoles(enteredUsername);
                 }
             }
         }
 
-        // 8. Final Validation
+        // 4. Final Validation
         if (userRole == null) {
-            System.out.println("Login Failed: User not found - " + enteredUsername);
-            JOptionPane.showMessageDialog(loginScreen, 
-                "User ID not found. Ensure you are using the correct ID (e.g., P001).", 
-                "Login Failed", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(loginScreen, "User ID '" + enteredUsername + "' not found.", "Login Failed", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        // 9. Launch Application
+        // 5. Successful Login -> Launch Main UI
+        launchMainApplication(userRole, thePatientId);
+    }
+
+    private String mapStaffToRole(String jobTitle) {
+        if (jobTitle == null) return "Admin";
+        String title = jobTitle.toLowerCase();
+        
+        if (title.contains("clinician") || title.contains("nurse") || title.contains("gp") || title.contains("doctor")) {
+            return "Clinician";
+        } else if (title.contains("reception")) {
+            return "Receptionist";
+        } else {
+            return "Admin";
+        }
+    }
+
+    private String handleDeveloperRoles(String username) {
+        String u = username.toLowerCase();
+        if (u.equals("admin")) return "Admin";
+        if (u.equals("clinician")) return "Clinician";
+        if (u.equals("receptionist")) return "Receptionist";
+        if (u.equals("developer")) return "Developer";
+        return null;
+    }
+
+    private void launchMainApplication(String role, String patientId) {
         loginScreen.dispose();
         
-        JFrame mainWindow = new JFrame("Hospital System - " + userRole);
+        JFrame mainWindow = new JFrame("Hospital Management System - [" + role + "]");
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        NavigationCard navigationCard = new NavigationCard(userRole);
+        
+        NavigationCard navigationCard = new NavigationCard(role);
         mainWindow.setContentPane(navigationCard);
-        mainWindow.setSize(1200, 800);
+        
+        // Initialize all controllers with the shared repositories
+        setupAllTheControllers(navigationCard, role, patientId);
+        
+        mainWindow.setSize(1300, 850);
         mainWindow.setLocationRelativeTo(null);
         mainWindow.setVisible(true);
-        
-        setupAllTheControllers(navigationCard, thePatientId);
     }
     
-    private void setupAllTheControllers(NavigationCard navigationCard, String thePatientId) {
-        String userRole = navigationCard.getRole();
-        
-        // Medical Records
-        if ("Clinician".equalsIgnoreCase(userRole) || "Developer".equalsIgnoreCase(userRole)) {
-            MedicalRecordPanel medicalPanel = navigationCard.getMedicalRecordPanel();
-            if (medicalPanel != null) {
-                new MedicalRecordController(medicalPanel, patientRepository, appointmentRepository, 
-                                          prescriptionRepository, clinicianRepository, facilityRepository);
-            }
+    private void setupAllTheControllers(NavigationCard nav, String role, String patientId) {
+        // Patient Management (Visible to Admin, Receptionist, Clinician, Developer)
+        if (nav.getPatientManagementPanel() != null) {
+            new PatientManagementController(nav.getPatientManagementPanel(), patientRepository);
         }
         
         // Appointments
-        if ("Receptionist".equalsIgnoreCase(userRole) || "Clinician".equalsIgnoreCase(userRole) || "Developer".equalsIgnoreCase(userRole)) {
-            AppointmentPanel appointmentPanel = navigationCard.getAppointmentPanel();
-            if (appointmentPanel != null) {
-                new AppointmentController(appointmentPanel, appointmentRepository, patientRepository, 
-                                         clinicianRepository, facilityRepository);
-            }
+        if (nav.getAppointmentPanel() != null) {
+            new AppointmentController(nav.getAppointmentPanel(), appointmentRepository, 
+                patientRepository, clinicianRepository, facilityRepository);
         }
         
-        // Patient Management
-        if ("Admin".equalsIgnoreCase(userRole) || "Receptionist".equalsIgnoreCase(userRole) || 
-            "Clinician".equalsIgnoreCase(userRole) || "Developer".equalsIgnoreCase(userRole)) {
-            PatientManagementPanel patientMgmtPanel = navigationCard.getPatientManagementPanel();
-            if (patientMgmtPanel != null) {
-                new PatientManagementController(patientMgmtPanel, patientRepository);
-            }
+        // Medical Records
+        if (nav.getMedicalRecordPanel() != null) {
+            new MedicalRecordController(nav.getMedicalRecordPanel(), patientRepository, 
+                appointmentRepository, prescriptionRepository, clinicianRepository, facilityRepository);
         }
         
         // Staff Management
-        if ("Admin".equalsIgnoreCase(userRole) || "Developer".equalsIgnoreCase(userRole)) {
-            StaffManagementPanel staffPanel = navigationCard.getStaffManagementPanel();
-            if (staffPanel != null) {
-                new StaffManagementController(staffPanel, staffRepository, clinicianRepository);
-            }
+        if (nav.getStaffManagementPanel() != null) {
+            new StaffManagementController(nav.getStaffManagementPanel(), staffRepository, clinicianRepository);
         }
         
-        // Patient Dashboard
-        if ("Patient".equalsIgnoreCase(userRole) || "Developer".equalsIgnoreCase(userRole)) {
-            PatientDashboardPanel patientDashPanel = navigationCard.getPatientDashboardPanel();
-            if (patientDashPanel != null) {
-                if ("Patient".equalsIgnoreCase(userRole) && thePatientId != null) {
-                    new PatientDashboardController(patientDashPanel, appointmentRepository, prescriptionRepository, 
-                                                 patientRepository, clinicianRepository, facilityRepository, thePatientId);
-                } else if ("Developer".equalsIgnoreCase(userRole)) {
-                    patientDashPanel.setPatientName("Developer View");
-                }
+        // Patient Dashboard (Specific to logged-in Patient)
+        if (nav.getPatientDashboardPanel() != null) {
+            if ("Patient".equalsIgnoreCase(role) && patientId != null) {
+                new PatientDashboardController(nav.getPatientDashboardPanel(), appointmentRepository, 
+                    prescriptionRepository, patientRepository, clinicianRepository, facilityRepository, patientId);
+            } else if ("Developer".equalsIgnoreCase(role)) {
+                nav.getPatientDashboardPanel().setPatientName("Developer Mode");
             }
         }
     }

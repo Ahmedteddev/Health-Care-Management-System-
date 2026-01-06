@@ -1,16 +1,11 @@
 package Main;
 
-// Hospital Management System
-// Student ID: [Your ID]
-// Coursework Project
-
 import model.*;
 import view.LoginView;
 import controller.LoginController;
 import javax.swing.SwingUtilities;
 
 // This is the main class that starts everything
-// When you run the program, this is where it begins
 public class Main {
 
     public static void main(String[] args) {

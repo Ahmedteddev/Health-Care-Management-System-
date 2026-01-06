@@ -56,14 +56,14 @@ public class MedicalRecordController {
         if (!patientId.isEmpty()) {
             foundPatient = patientRepository.findById(patientId);
         } else if (!patientName.isEmpty()) {
-            for (Patient p : patientRepository.getAll()) {
+            for (Patient p : patientRepository.findAll()) {
                 if (p.getFullName().toLowerCase().contains(patientName.toLowerCase())) {
                     foundPatient = p;
                     break;
                 }
             }
         } else if (!nhsNumber.isEmpty()) {
-            for (Patient p : patientRepository.getAll()) {
+            for (Patient p : patientRepository.findAll()) {
                 if (nhsNumber.equals(p.getNhsNumber())) {
                     foundPatient = p;
                     break;
