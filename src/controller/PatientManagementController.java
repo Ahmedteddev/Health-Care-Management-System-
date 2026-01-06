@@ -9,12 +9,14 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PatientManagementController {
     
     private final PatientManagementPanel view;
     private final PatientRepository patientRepository;
-    private java.util.List<Patient> allPatientsList = new java.util.ArrayList<>();
+    private List<Patient> allPatientsList = new ArrayList<>();
     
     public PatientManagementController(PatientManagementPanel view,
                                       PatientRepository patientRepository) {
@@ -26,75 +28,51 @@ public class PatientManagementController {
     }
     
     private void bind() {
-        // Wire up all listeners in the constructor
+        // Wire up buttons
         view.getSearchButton().addActionListener(e -> handleSearch());
         view.getRegisterPatientButton().addActionListener(e -> handleRegisterPatient());
         view.getEditPatientButton().addActionListener(e -> handleEditPatient());
         view.getDeletePatientButton().addActionListener(new DeletePatientListener());
         
-        // Search on Enter key in text fields
+        // Search on Enter key
         view.getPatientIdField().addActionListener(e -> handleSearch());
         view.getPatientNameField().addActionListener(e -> handleSearch());
         view.getNhsNumberField().addActionListener(e -> handleSearch());
         
-        // Enable/disable edit button based on selection
+        // Table selection listener
         view.getPatientTable().getSelectionModel().addListSelectionListener(new PatientSelectionListener());
     }
     
     public void loadPatients() {
-        allPatientsList.clear();
-        allPatientsList.addAll(patientRepository.getAll());
+        // Fetch fresh data from repository
+        this.allPatientsList = patientRepository.getAll();
         view.setPatients(allPatientsList);
     }
     
-    // Search for patients by ID or name
     private void handleSearch() {
-        // Get the search text (e.g., "P001")
         String searchText = view.getPatientIdField().getText().trim();
         String patientName = view.getPatientNameField().getText().trim();
         String nhsNumber = view.getNhsNumberField().getText().trim();
         
-        System.out.println("Searching for Patient ID: " + searchText);
+        List<Patient> filteredList = new ArrayList<>();
         
-        java.util.List<Patient> filteredList = new java.util.ArrayList<>();
-        
-        // Filter the PatientRepository list
         for (Patient patient : allPatientsList) {
             boolean matches = true;
             
-            // Filter by exact Patient ID match (e.g., "P001") using equalsIgnoreCase
+            // ID/Name Search
             if (!searchText.isEmpty()) {
                 String pId = patient.getPatientId() != null ? patient.getPatientId().trim() : "";
-                // Check for exact ID match (case-insensitive) or name match
-                if (!pId.equalsIgnoreCase(searchText)) {
-                    // If not exact ID match, check if the search text matches the name
-                    String fullName = patient.getFullName() != null ? patient.getFullName() : "";
-                    String firstName = patient.getFirstName() != null ? patient.getFirstName() : "";
-                    String lastName = patient.getLastName() != null ? patient.getLastName() : "";
-                    String searchLower = searchText.toLowerCase();
-                    if (!fullName.toLowerCase().contains(searchLower) && 
-                        !firstName.toLowerCase().contains(searchLower) && 
-                        !lastName.toLowerCase().contains(searchLower)) {
-                        matches = false;
-                    }
-                }
-            }
-            
-            // Additional filter by patient name field
-            if (matches && !patientName.isEmpty()) {
-                String fullName = patient.getFullName() != null ? patient.getFullName().toLowerCase() : "";
-                String firstName = patient.getFirstName() != null ? patient.getFirstName().toLowerCase() : "";
-                String lastName = patient.getLastName() != null ? patient.getLastName().toLowerCase() : "";
-                String nameLower = patientName.toLowerCase();
-                if (!fullName.contains(nameLower) && !firstName.contains(nameLower) && !lastName.contains(nameLower)) {
+                String fullName = (patient.getFirstName() + " " + patient.getLastName()).toLowerCase();
+                
+                if (!pId.equalsIgnoreCase(searchText) && !fullName.contains(searchText.toLowerCase())) {
                     matches = false;
                 }
             }
             
-            // Additional filter by NHS number
+            // NHS Number Search
             if (matches && !nhsNumber.isEmpty()) {
-                String pNhsNumber = patient.getNhsNumber() != null ? patient.getNhsNumber().toLowerCase() : "";
-                if (!pNhsNumber.contains(nhsNumber.toLowerCase())) {
+                String pNhs = patient.getNhsNumber() != null ? patient.getNhsNumber().trim() : "";
+                if (!pNhs.contains(nhsNumber)) {
                     matches = false;
                 }
             }
@@ -103,17 +81,14 @@ public class PatientManagementController {
                 filteredList.add(patient);
             }
         }
-        
-        // Use view.updateTable() to show results
         view.updateTable(filteredList);
     }
     
-    // Open dialog to register a new patient
     private void handleRegisterPatient() {
         JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view);
         PatientFormDialog dialog = new PatientFormDialog(parentFrame, "Register New Patient");
         
-        // Generate new ID in P001 format
+        // Generate the ID automatically
         String newId = patientRepository.generateNewId();
         dialog.setPatientId(newId);
         dialog.setPatientIdEditable(false);
@@ -121,150 +96,79 @@ public class PatientManagementController {
         dialog.getSaveButton().addActionListener(ev -> {
             Patient patientData = dialog.getPatientData();
             
-            // Validation
-            if (patientData.getFirstName().isEmpty() || patientData.getLastName().isEmpty()) {
+            // Validate Required Fields
+            if (patientData.getFirstName().trim().isEmpty() || patientData.getLastName().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "First name and last name are required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            // Set required fields
-            String today = LocalDate.now().toString();
-            patientData.setRegistrationDate(today);
-            patientData.setPatientId(newId); // Ensure P001 format is maintained
+            // Force the ID and registration date
+            patientData.setPatientId(newId);
+            patientData.setRegistrationDate(LocalDate.now().toString());
             
-            // Set optional fields to empty string if null
-            if (patientData.getEmergencyContactName() == null || patientData.getEmergencyContactName().isEmpty()) {
-                patientData.setEmergencyContactName("");
-            }
-            if (patientData.getEmergencyContactPhone() == null || patientData.getEmergencyContactPhone().isEmpty()) {
-                patientData.setEmergencyContactPhone("");
-            }
-            if (patientData.getGpSurgeryId() == null || patientData.getGpSurgeryId().isEmpty()) {
-                patientData.setGpSurgeryId("");
-            }
+            // Ensure no null values are passed to the CSV logic
+            if (patientData.getEmergencyContactName() == null) patientData.setEmergencyContactName("");
+            if (patientData.getEmergencyContactPhone() == null) patientData.setEmergencyContactPhone("");
+            if (patientData.getGpSurgeryId() == null) patientData.setGpSurgeryId("");
+
+            // SAVE to repository (this handles adding to list AND appending to CSV)
+            patientRepository.add(patientData);
             
-            // Call repository.addAndSave() (or addAndAppend which saves to CSV)
-            patientRepository.addAndAppend(patientData);
-            
-            // Mark dialog as confirmed
+            // Confirm and Refresh
             dialog.setSaved(true);
+            loadPatients(); // Update internal list
+            handleSearch(); // Refresh table view
             
-            // Immediately call refreshTable() in the view
-            loadPatients();
-            view.refreshTable();
-            
-            dialog.dispose();
-            System.out.println("[Success]: Patient registered successfully with ID: " + newId);
-        });
-        
-        dialog.getCancelButton().addActionListener(ev -> {
-            dialog.setSaved(false);
+            JOptionPane.showMessageDialog(null, "Registration Successful!\nPatient ID: " + newId);
             dialog.dispose();
         });
         
+        dialog.getCancelButton().addActionListener(ev -> dialog.dispose());
         dialog.setVisible(true);
-        
-        // Check if dialog was confirmed after it closes
-        if (dialog.isConfirmed()) {
-            // Data already saved in the save button listener above
-        }
     }
     
-    // Edit the selected patient
     private void handleEditPatient() {
-        // Get the selected row from view.getSelectedPatientId()
         String selectedId = view.getSelectedPatientId();
-        if (selectedId == null || selectedId.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Please select a patient to edit.", "No Selection", JOptionPane.WARNING_MESSAGE);
+        if (selectedId == null) {
+            JOptionPane.showMessageDialog(view, "Please select a patient to edit.");
             return;
         }
         
-        // Use trim() on ID lookup to prevent issues with hidden spaces
-        final String patientId = selectedId.trim();
-        Patient patient = patientRepository.findById(patientId);
-        if (patient == null) {
-            JOptionPane.showMessageDialog(view, "Patient not found with ID: " + patientId, "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+        Patient patient = patientRepository.findById(selectedId);
+        if (patient == null) return;
         
-        // Open an EditPatientDialog pre-filled with that patient's data
         JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view);
-        PatientFormDialog dialog = new PatientFormDialog(parentFrame, "Edit Patient Details");
+        PatientFormDialog dialog = new PatientFormDialog(parentFrame, "Edit Patient");
         dialog.setPatientData(patient);
-        dialog.setPatientIdEditable(false); // ID cannot be changed
+        dialog.setPatientIdEditable(false);
         
         dialog.getSaveButton().addActionListener(ev -> {
-            Patient updatedPatient = dialog.getPatientData();
+            Patient updated = dialog.getPatientData();
+            updated.setPatientId(patient.getPatientId()); // Keep original ID
             
-            // Validation
-            if (updatedPatient.getFirstName().isEmpty() || updatedPatient.getLastName().isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "First name and last name are required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+            patientRepository.updatePatient(updated);
             
-            // Ensure P001 format is strictly maintained - use original patientId
-            updatedPatient.setPatientId(patientId);
-            
-            // Preserve fields that shouldn't change
-            updatedPatient.setEmergencyContactName(patient.getEmergencyContactName() != null ? patient.getEmergencyContactName() : "");
-            updatedPatient.setEmergencyContactPhone(patient.getEmergencyContactPhone() != null ? patient.getEmergencyContactPhone() : "");
-            updatedPatient.setRegistrationDate(patient.getRegistrationDate() != null ? patient.getRegistrationDate() : "");
-            updatedPatient.setGpSurgeryId(patient.getGpSurgeryId() != null ? patient.getGpSurgeryId() : "");
-            
-            // On save, update the repository
-            patientRepository.updatePatient(updatedPatient);
-            
-            // Mark dialog as confirmed
-            dialog.setSaved(true);
-            
-            // Refresh the UI table
             loadPatients();
-            view.refreshTable();
-            
+            handleSearch();
             dialog.dispose();
-            System.out.println("[Success]: Patient updated successfully! ID: " + patientId);
-        });
-        
-        dialog.getCancelButton().addActionListener(ev -> {
-            dialog.setSaved(false);
-            dialog.dispose();
+            JOptionPane.showMessageDialog(null, "Patient record updated.");
         });
         
         dialog.setVisible(true);
     }
-    
+
     private class DeletePatientListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            Patient selectedPatient = view.getSelectedPatient();
-            if (selectedPatient == null) {
-                JOptionPane.showMessageDialog(view, "Please select a patient to delete.", "No Selection", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
+            Patient selected = view.getSelectedPatient();
+            if (selected == null) return;
             
-            String patientId = selectedPatient.getPatientId();
-            
-            int result = JOptionPane.showConfirmDialog(
-                view,
-                "Are you sure you want to delete patient " + selectedPatient.getFullName() + " (" + patientId + ")?\n\n" +
-                "This action cannot be undone.",
-                "Confirm Patient Deletion",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
-            );
-            
-            if (result == JOptionPane.YES_OPTION) {
-                Patient patient = patientRepository.findById(patientId);
-                if (patient != null) {
-                    patientRepository.remove(patient);
-                    patientRepository.saveAll();
-                    loadPatients();
-                    handleSearch(); // Use handleSearch() instead of filterPatients()
-                    
-                    System.out.println("[Success]: Patient record deleted successfully.");
-                } else {
-                    JOptionPane.showMessageDialog(view, "Patient not found.", "Error", JOptionPane.ERROR_MESSAGE);
-                }
+            int confirm = JOptionPane.showConfirmDialog(view, "Delete " + selected.getFullName() + "?", "Confirm", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                patientRepository.remove(selected);
+                patientRepository.saveAll(); // Overwrites CSV without the deleted patient
+                loadPatients();
+                handleSearch();
             }
         }
     }
@@ -273,17 +177,8 @@ public class PatientManagementController {
         @Override
         public void valueChanged(ListSelectionEvent e) {
             if (!e.getValueIsAdjusting()) {
-                boolean hasSelection = view.getSelectedRow() >= 0;
-                view.setEditDeleteButtonsEnabled(hasSelection);
+                view.setEditDeleteButtonsEnabled(view.getSelectedRow() >= 0);
             }
         }
     }
-    
-    public JTable getPatientTable() {
-        return view.getPatientTable();
-    }
 }
-
-
-
-

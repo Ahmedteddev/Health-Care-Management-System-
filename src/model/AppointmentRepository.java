@@ -29,6 +29,11 @@ public class AppointmentRepository {
     private void load() {
         try {
             for (String[] row : CsvUtils.readCsv(csvPath)) {
+                // FIX: Skip empty rows or null rows
+                if (row == null || row.length == 0 || (row.length == 1 && row[0].trim().isEmpty())) {
+                    continue;
+                }
+                
                 Appointment a = new Appointment(
                         row[0], row[1], row[2], row[3], row[4], row[5],
                         row[6], row[7], row[8], row[9], row[10], row[11], row[12]
@@ -84,11 +89,9 @@ public class AppointmentRepository {
             return;
         }
         
-        // Find and update the appointment in the list
         for (int i = 0; i < appointments.size(); i++) {
             if (appointments.get(i).getId().equals(updated.getId())) {
                 appointments.set(i, updated);
-                // Save all to CSV (overwrites the entire file)
                 saveAll();
                 System.out.println("Successfully updated appointment " + updated.getId());
                 return;
@@ -118,8 +121,10 @@ public class AppointmentRepository {
     }
 
     public Appointment findById(String id) {
+        if (id == null) return null;
+        String tid = id.trim();
         for (Appointment a : appointments)
-            if (a.getId().equals(id)) return a;
+            if (a.getId().trim().equals(tid)) return a;
         return null;
     }
     
@@ -129,8 +134,11 @@ public class AppointmentRepository {
         if (patientId == null || patientId.isEmpty()) {
             return result;
         }
+        // FIX: Added .trim() to both sides to ensure matching works with CSV whitespace
+        String trimmedId = patientId.trim();
         for (Appointment appointment : appointments) {
-            if (patientId.equals(appointment.getPatientId())) {
+            String targetId = appointment.getPatientId() != null ? appointment.getPatientId().trim() : "";
+            if (trimmedId.equalsIgnoreCase(targetId)) {
                 result.add(appointment);
             }
         }
@@ -148,14 +156,19 @@ public class AppointmentRepository {
             return;
         }
         
+        String trimmedId = patientId.trim();
         int removedCount = 0;
         for (Appointment a : appointments) {
-            if (patientId.equals(a.getPatientId())) {
+            String targetId = a.getPatientId() != null ? a.getPatientId().trim() : "";
+            if (trimmedId.equalsIgnoreCase(targetId)) {
                 removedCount++;
             }
         }
         
-        appointments.removeIf(appointment -> patientId.equals(appointment.getPatientId()));
+        appointments.removeIf(appointment -> {
+            String targetId = appointment.getPatientId() != null ? appointment.getPatientId().trim() : "";
+            return trimmedId.equalsIgnoreCase(targetId);
+        });
         saveAll();
         
         System.out.println("Deleted " + removedCount + " appointment(s) for patient " + patientId);
@@ -189,11 +202,8 @@ public class AppointmentRepository {
         }
     }
     
-    // Escape commas and quotes in CSV values
     private String escapeCsv(String value) {
-        if (value == null) {
-            return "";
-        }
+        if (value == null) return "";
         if (value.contains(",") || value.contains("\"")) {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }

@@ -16,6 +16,7 @@ public class PatientFormDialog extends JDialog {
     private JTextField emailField;
     private JTextField addressField;
     private JTextField postcodeField;
+    private JTextField gpSurgeryIdField; 
     private JButton saveButton;
     private JButton cancelButton;
     
@@ -32,14 +33,15 @@ public class PatientFormDialog extends JDialog {
         initializeComponents();
         setupLayout();
         
-        setMinimumSize(new Dimension(500, 400));
+        // Increased height slightly to accommodate the new row
+        setMinimumSize(new Dimension(500, 550)); 
         pack();
         setLocationRelativeTo(parent);
     }
     
     private void initializeComponents() {
         patientIdField = new JTextField(20);
-        patientIdField.setEditable(false); // ID is read-only when editing
+        patientIdField.setEditable(false); 
         
         firstNameField = new JTextField(20);
         lastNameField = new JTextField(20);
@@ -50,6 +52,7 @@ public class PatientFormDialog extends JDialog {
         emailField = new JTextField(20);
         addressField = new JTextField(20);
         postcodeField = new JTextField(20);
+        gpSurgeryIdField = new JTextField(20); // INITIALIZING THE NEW FIELD
         
         saveButton = new JButton("Save");
         cancelButton = new JButton("Cancel");
@@ -59,11 +62,9 @@ public class PatientFormDialog extends JDialog {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
-        // Form panel with GridBagLayout
         JPanel formPanel = createFormPanel();
-        mainPanel.add(formPanel, BorderLayout.CENTER);
+        mainPanel.add(new JScrollPane(formPanel), BorderLayout.CENTER); // Added scroll pane just in case
         
-        // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
         buttonPanel.add(saveButton);
         buttonPanel.add(cancelButton);
@@ -83,79 +84,33 @@ public class PatientFormDialog extends JDialog {
         
         int row = 0;
         
-        // Patient ID
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        formPanel.add(new JLabel("Patient ID:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        formPanel.add(patientIdField, gbc);
+        // Helper method to add rows quickly to the GridBagLayout
+        addRow(formPanel, "Patient ID:", patientIdField, gbc, row++);
+        addRow(formPanel, "First Name:", firstNameField, gbc, row++);
+        addRow(formPanel, "Last Name:", lastNameField, gbc, row++);
+        addRow(formPanel, "Date of Birth (YYYY-MM-DD):", dobField, gbc, row++);
+        addRow(formPanel, "NHS Number:", nhsNumberField, gbc, row++);
+        addRow(formPanel, "Gender:", genderComboBox, gbc, row++);
+        addRow(formPanel, "Phone:", phoneField, gbc, row++);
+        addRow(formPanel, "Email:", emailField, gbc, row++);
+        addRow(formPanel, "Address:", addressField, gbc, row++);
+        addRow(formPanel, "Postcode:", postcodeField, gbc, row++);
         
-        row++;
-        // First Name
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        formPanel.add(new JLabel("First Name:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        formPanel.add(firstNameField, gbc);
-        
-        row++;
-        // Last Name
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        formPanel.add(new JLabel("Last Name:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        formPanel.add(lastNameField, gbc);
-        
-        row++;
-        // Date of Birth
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        formPanel.add(new JLabel("Date of Birth (YYYY-MM-DD):"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        formPanel.add(dobField, gbc);
-        
-        row++;
-        // NHS Number
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        formPanel.add(new JLabel("NHS Number:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        formPanel.add(nhsNumberField, gbc);
-        
-        row++;
-        // Gender
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        formPanel.add(new JLabel("Gender:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        formPanel.add(genderComboBox, gbc);
-        
-        row++;
-        // Phone
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        formPanel.add(new JLabel("Phone:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        formPanel.add(phoneField, gbc);
-        
-        row++;
-        // Email
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        formPanel.add(new JLabel("Email:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        formPanel.add(emailField, gbc);
-        
-        row++;
-        // Address
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        formPanel.add(new JLabel("Address:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        formPanel.add(addressField, gbc);
-        
-        row++;
-        // Postcode
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        formPanel.add(new JLabel("Postcode:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        formPanel.add(postcodeField, gbc);
+        // ADDING THE NEW FACILITY FIELD TO THE LAYOUT
+        addRow(formPanel, "GP Surgery / Facility ID:", gpSurgeryIdField, gbc, row++);
         
         return formPanel;
     }
+
+    // Utility to keep the code clean and ensure the field actually appears
+    private void addRow(JPanel panel, String labelText, JComponent component, GridBagConstraints gbc, int row) {
+        gbc.gridy = row;
+        gbc.gridx = 0; gbc.weightx = 0;
+        panel.add(new JLabel(labelText), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        panel.add(component, gbc);
+    }
     
-    // Get the patient data from the form
     public Patient getPatientData() {
         Patient patient = new Patient();
         patient.setPatientId(patientIdField.getText().trim());
@@ -168,62 +123,40 @@ public class PatientFormDialog extends JDialog {
         patient.setEmail(emailField.getText().trim());
         patient.setAddress(addressField.getText().trim());
         patient.setPostcode(postcodeField.getText().trim());
+        
+        // MAPPING THE NEW FIELD TO THE PATIENT OBJECT
+        patient.setGpSurgeryId(gpSurgeryIdField.getText().trim()); 
         return patient;
     }
     
-    // Fill the form with patient data
     public void setPatientData(Patient patient) {
-        if (patient == null) {
-            return;
-        }
+        if (patient == null) return;
         
-        patientIdField.setText(patient.getPatientId() != null ? patient.getPatientId() : "");
-        firstNameField.setText(patient.getFirstName() != null ? patient.getFirstName() : "");
-        lastNameField.setText(patient.getLastName() != null ? patient.getLastName() : "");
-        dobField.setText(patient.getDateOfBirth() != null ? patient.getDateOfBirth() : "");
-        nhsNumberField.setText(patient.getNhsNumber() != null ? patient.getNhsNumber() : "");
+        patientIdField.setText(patient.getPatientId());
+        firstNameField.setText(patient.getFirstName());
+        lastNameField.setText(patient.getLastName());
+        dobField.setText(patient.getDateOfBirth());
+        nhsNumberField.setText(patient.getNhsNumber());
+        genderComboBox.setSelectedItem(patient.getGender());
+        phoneField.setText(patient.getPhoneNumber());
+        emailField.setText(patient.getEmail());
+        addressField.setText(patient.getAddress());
+        postcodeField.setText(patient.getPostcode());
         
-        String gender = patient.getGender();
-        if (gender != null) {
-            genderComboBox.setSelectedItem(gender);
-        }
-        
-        phoneField.setText(patient.getPhoneNumber() != null ? patient.getPhoneNumber() : "");
-        emailField.setText(patient.getEmail() != null ? patient.getEmail() : "");
-        addressField.setText(patient.getAddress() != null ? patient.getAddress() : "");
-        postcodeField.setText(patient.getPostcode() != null ? patient.getPostcode() : "");
+        // SETTING THE VALUE IN THE UI WHEN EDITING
+        gpSurgeryIdField.setText(patient.getGpSurgeryId() != null ? patient.getGpSurgeryId() : "");
     }
     
     public void setPatientId(String id) {
         patientIdField.setText(id);
     }
     
-    // Make the patient ID field editable
     public void setPatientIdEditable(boolean editable) {
         patientIdField.setEditable(editable);
     }
     
-    // Button getters
-    public JButton getSaveButton() {
-        return saveButton;
-    }
-    
-    public JButton getCancelButton() {
-        return cancelButton;
-    }
-    
-    public boolean isSaved() {
-        return saved;
-    }
-    
-    public void setSaved(boolean saved) {
-        this.saved = saved;
-    }
-    
-    public boolean isConfirmed() {
-        return saved;
-    }
+    public JButton getSaveButton() { return saveButton; }
+    public JButton getCancelButton() { return cancelButton; }
+    public boolean isSaved() { return saved; }
+    public void setSaved(boolean saved) { this.saved = saved; }
 }
-
-
-

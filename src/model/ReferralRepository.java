@@ -1,6 +1,5 @@
 package model;
 
-// Handles loading and saving referral data from CSV (uses singleton pattern)
 import util.CsvUtils;
 import java.io.*;
 import java.util.ArrayList;
@@ -19,7 +18,6 @@ public class ReferralRepository {
         load();
     }
     
-    // Get the singleton instance (only one copy of the data)
     public static synchronized ReferralRepository getInstance(String csvPath) {
         if (referralRepo == null) {
             referralRepo = new ReferralRepository(csvPath);
@@ -27,35 +25,32 @@ public class ReferralRepository {
         return referralRepo;
     }
     
-    // Load referrals from CSV
     private void load() {
         try {
             List<String[]> rows = CsvUtils.readCsv(csvPath);
             
             for (String[] row : rows) {
-                if (row.length < EXPECTED_COLUMNS) {
-                    System.err.println("Warning: Skipping invalid referral row with insufficient columns (" + 
-                                     row.length + " < " + EXPECTED_COLUMNS + ")");
+                // GUARD 1: Skip completely empty rows
+                if (row == null || row.length == 0 || (row.length == 1 && row[0].trim().isEmpty())) {
                     continue;
+                }
+
+                // GUARD 2: Skip header row
+                if (row[0].equalsIgnoreCase("referral_id")) {
+                    continue;
+                }
+
+                // GUARD 3: SAFE ARRAY FILLING
+                // This prevents ArrayIndexOutOfBoundsException if the CSV row is too short
+                String[] safe = new String[EXPECTED_COLUMNS];
+                for (int i = 0; i < EXPECTED_COLUMNS; i++) {
+                    safe[i] = (i < row.length) ? row[i] : "";
                 }
                 
                 Referral referral = new Referral(
-                    row[0],
-                    row[1],
-                    row[2],
-                    row[3],
-                    row[4],
-                    row[5],
-                    row[6],
-                    row[7],
-                    row[8],
-                    row[9],
-                    row[10],
-                    row[11],
-                    row[12],
-                    row[13],
-                    row[14],
-                    row[15]
+                    safe[0], safe[1], safe[2], safe[3], safe[4], safe[5],
+                    safe[6], safe[7], safe[8], safe[9], safe[10], safe[11],
+                    safe[12], safe[13], safe[14], safe[15]
                 );
                 
                 referrals.add(referral);
@@ -65,10 +60,8 @@ public class ReferralRepository {
             
         } catch (IOException ex) {
             System.err.println("Failed to load referrals from CSV file: " + csvPath);
-            System.err.println("Error: " + ex.getMessage());
         } catch (Exception ex) {
             System.err.println("Unexpected error while loading referrals: " + ex.getMessage());
-            ex.printStackTrace();
         }
     }
     
@@ -77,13 +70,11 @@ public class ReferralRepository {
     }
     
     public Referral findById(String id) {
-        if (id == null) {
-            return null;
-        }
-        
-        for (Referral referral : referrals) {
-            if (id.equals(referral.getReferralId())) {
-                return referral;
+        if (id == null) return null;
+        String tid = id.trim();
+        for (Referral r : referrals) {
+            if (tid.equalsIgnoreCase(r.getReferralId() != null ? r.getReferralId().trim() : "")) {
+                return r;
             }
         }
         return null;
@@ -91,111 +82,66 @@ public class ReferralRepository {
     
     public List<Referral> findByPatientId(String patientId) {
         List<Referral> result = new ArrayList<>();
-        if (patientId == null) {
-            return result;
-        }
+        if (patientId == null || patientId.isEmpty()) return result;
         
+        String trimmedId = patientId.trim();
         for (Referral referral : referrals) {
-            if (patientId.equals(referral.getPatientId())) {
+            String pId = referral.getPatientId() != null ? referral.getPatientId().trim() : "";
+            if (trimmedId.equalsIgnoreCase(pId)) {
                 result.add(referral);
             }
         }
         return result;
     }
     
-    // Add a new referral and append to CSV
     public void addAndAppend(Referral referral) {
-        if (referral == null) {
-            System.err.println("Cannot add null referral.");
-            return;
-        }
-        
-        if (findById(referral.getReferralId()) != null) {
-            System.err.println("Referral with ID " + referral.getReferralId() + " already exists.");
-            return;
-        }
+        if (referral == null) return;
         
         referrals.add(referral);
         
         try {
             String[] rowData = {
-                referral.getReferralId(),
-                referral.getPatientId(),
-                referral.getReferringClinicianId(),
-                referral.getReferredToClinicianId(),
-                referral.getReferringFacilityId(),
-                referral.getReferredToFacilityId(),
-                referral.getReferralDate(),
-                referral.getUrgencyLevel(),
-                referral.getReferralReason(),
-                referral.getClinicalSummary(),
-                referral.getRequestedInvestigations(),
-                referral.getStatus(),
-                referral.getAppointmentId(),
-                referral.getNotes(),
-                referral.getCreatedDate(),
-                referral.getLastUpdated()
+                referral.getReferralId(), referral.getPatientId(), referral.getReferringClinicianId(),
+                referral.getReferredToClinicianId(), referral.getReferringFacilityId(),
+                referral.getReferredToFacilityId(), referral.getReferralDate(),
+                referral.getUrgencyLevel(), referral.getReferralReason(),
+                referral.getClinicalSummary(), referral.getRequestedInvestigations(),
+                referral.getStatus(), referral.getAppointmentId(), referral.getNotes(),
+                referral.getCreatedDate(), referral.getLastUpdated()
             };
             
             CsvUtils.appendLine(csvPath, rowData);
-            System.out.println("Successfully added referral " + referral.getReferralId() + " to repository and CSV.");
-            
         } catch (IOException ex) {
-            System.err.println("Failed to append referral to CSV file: " + csvPath);
-            System.err.println("Error: " + ex.getMessage());
-        } catch (Exception ex) {
-            System.err.println("Unexpected error while adding referral: " + ex.getMessage());
-            ex.printStackTrace();
+            System.err.println("Failed to append referral: " + ex.getMessage());
         }
     }
     
-    // Generate a new referral ID (R001, R002, etc.)
     public String generateNewId() {
         int max = 0;
-        
         for (Referral referral : referrals) {
             String id = referral.getReferralId();
             if (id != null && id.startsWith("R")) {
                 try {
                     int num = Integer.parseInt(id.substring(1));
-                    if (num > max) {
-                        max = num;
-                    }
-                } catch (NumberFormatException ex) {
-                }
+                    if (num > max) max = num;
+                } catch (Exception ignore) {}
             }
         }
-        
         return String.format("R%03d", max + 1);
     }
     
-    public void deleteByPatientId(String patientId) {
-        deleteAllByPatientId(patientId);
-    }
-    
-    // Delete all referrals for a patient
     public void deleteAllByPatientId(String patientId) {
-        if (patientId == null || patientId.isEmpty()) {
-            System.err.println("Cannot delete referrals: patient ID is null or empty.");
-            return;
-        }
-        
-        int removedCount = 0;
-        for (Referral r : referrals) {
-            if (patientId.equals(r.getPatientId())) {
-                removedCount++;
-            }
-        }
-        
-        referrals.removeIf(referral -> patientId.equals(referral.getPatientId()));
+        if (patientId == null || patientId.isEmpty()) return;
+        String trimmedId = patientId.trim();
+        referrals.removeIf(r -> {
+            String pId = r.getPatientId() != null ? r.getPatientId().trim() : "";
+            return trimmedId.equalsIgnoreCase(pId);
+        });
         saveAll();
-        
-        System.out.println("Deleted " + removedCount + " referral(s) for patient " + patientId);
     }
     
-    // Save all referrals back to CSV
     private void saveAll() {
-        try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(csvPath))) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(csvPath))) {
             bw.write("referral_id,patient_id,referring_clinician_id,referred_to_clinician_id,");
             bw.write("referring_facility_id,referred_to_facility_id,referral_date,urgency_level,");
             bw.write("referral_reason,clinical_summary,requested_investigations,status,");
@@ -221,23 +167,16 @@ public class ReferralRepository {
                 bw.write(escapeCsv(r.getLastUpdated()));
                 bw.newLine();
             }
-            
-        } catch (java.io.IOException ex) {
-            System.err.println("Failed to save referrals to CSV file: " + csvPath);
-            System.err.println("Error: " + ex.getMessage());
+        } catch (IOException ex) {
+            System.err.println("Failed to save referrals: " + ex.getMessage());
         }
     }
     
-    // Escape commas and quotes in CSV values
     private String escapeCsv(String value) {
-        if (value == null) {
-            return "";
-        }
+        if (value == null) return "";
         if (value.contains(",") || value.contains("\"")) {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }
         return value;
     }
 }
-
-

@@ -14,7 +14,6 @@ public class PrescriptionRepository {
     private final List<Prescription> prescriptions = new ArrayList<>();
     private final String csvPath;
 
-    // CSV has EXACTLY 15 columns
     private static final int COLUMN_COUNT = 15;
 
     public PrescriptionRepository(String csvPath) {
@@ -22,39 +21,27 @@ public class PrescriptionRepository {
         load();
     }
 
-    // ============================================================
-    // LOAD ALL PRESCRIPTIONS SAFELY
-    // ============================================================
     private void load() {
         try {
             for (String[] row : CsvUtils.readCsv(csvPath)) {
+                // FIX: Skip empty rows or null rows
+                if (row == null || row.length == 0 || (row.length == 1 && row[0].trim().isEmpty())) {
+                    continue;
+                }
 
                 // Skip header row
-                if (row.length == 0 || row[0].equalsIgnoreCase("prescription_id"))
+                if (row[0].equalsIgnoreCase("prescription_id"))
                     continue;
 
-                // Guarantee 15 columns to prevent ArrayIndexOutOfBounds
                 String[] safe = new String[COLUMN_COUNT];
                 for (int i = 0; i < COLUMN_COUNT; i++) {
                     safe[i] = (i < row.length) ? row[i] : "";
                 }
 
                 Prescription p = new Prescription(
-                        safe[0], // prescription_id
-                        safe[1], // patient_id
-                        safe[2], // clinician_id
-                        safe[3], // appointment_id
-                        safe[4], // prescription_date
-                        safe[5], // medication_name
-                        safe[6], // dosage
-                        safe[7], // frequency
-                        safe[8], // duration_days
-                        safe[9], // quantity
-                        safe[10],// instructions
-                        safe[11],// pharmacy_name
-                        safe[12],// status
-                        safe[13],// issue_date
-                        safe[14] // collection_date
+                        safe[0], safe[1], safe[2], safe[3], safe[4], safe[5],
+                        safe[6], safe[7], safe[8], safe[9], safe[10], safe[11],
+                        safe[12], safe[13], safe[14]
                 );
 
                 prescriptions.add(p);
@@ -75,15 +62,17 @@ public class PrescriptionRepository {
         if (patientId == null || patientId.isEmpty()) {
             return result;
         }
+        // FIX: Added .trim() and equalsIgnoreCase for robust filtering
+        String trimmedId = patientId.trim();
         for (Prescription prescription : prescriptions) {
-            if (patientId.equals(prescription.getPatientId())) {
+            String targetId = prescription.getPatientId() != null ? prescription.getPatientId().trim() : "";
+            if (trimmedId.equalsIgnoreCase(targetId)) {
                 result.add(prescription);
             }
         }
         return result;
     }
 
-    // Generate a new prescription ID (RX001, RX002, etc.)
     public String generateNewId() {
         int max = 0;
         for (Prescription p : prescriptions) {
@@ -93,8 +82,7 @@ public class PrescriptionRepository {
                     int num = Integer.parseInt(id.substring(2));
                     if (num > max) max = num;
                 }
-            } catch (Exception ignore) {
-            }
+            } catch (Exception ignore) {}
         }
         return String.format("RX%03d", max + 1);
     }
@@ -117,46 +105,29 @@ public class PrescriptionRepository {
         return new ArrayList<>(pharms);
     }
 
-    // Add a new prescription and append to CSV
     public void addAndAppend(Prescription p) {
-
         prescriptions.add(p);
-
         try {
             CsvUtils.appendLine(csvPath, new String[]{
-                    p.getId(),
-                    p.getPatientId(),
-                    p.getClinicianId(),
-                    p.getAppointmentId(),
-                    p.getPrescriptionDate(),
-                    p.getMedication(),
-                    p.getDosage(),
-                    p.getFrequency(),
-                    p.getDurationDays(),
-                    p.getQuantity(),
-                    p.getInstructions(),
-                    p.getPharmacyName(),
-                    p.getStatus(),
-                    p.getIssueDate(),
-                    p.getCollectionDate()
+                    p.getId(), p.getPatientId(), p.getClinicianId(), p.getAppointmentId(),
+                    p.getPrescriptionDate(), p.getMedication(), p.getDosage(),
+                    p.getFrequency(), p.getDurationDays(), p.getQuantity(),
+                    p.getInstructions(), p.getPharmacyName(), p.getStatus(),
+                    p.getIssueDate(), p.getCollectionDate()
             });
-
         } catch (IOException ex) {
             System.err.println("Failed to append prescription: " + ex.getMessage());
         }
     }
     
-    // Generate a prescription text file and save it
     public void generatePrescriptionFile(Prescription p, String practitionerName, String practitionerId) {
         File prescriptionDir = new File("src/data/prescription");
         if (!prescriptionDir.exists()) {
-            prescriptionDir.mkdirs(); // Use mkdirs() to create parent directories if needed
+            prescriptionDir.mkdirs();
         }
         
-        // Format date for filename
         String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String filename = "prescription_" + p.getPatientId() + "_" + dateStr + ".txt";
-        
         File prescriptionFile = new File(prescriptionDir, filename);
         
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(prescriptionFile))) {
@@ -177,17 +148,12 @@ public class PrescriptionRepository {
             writer.newLine();
             writer.write("Digitally signed by the practitioner.");
             writer.newLine();
-            
             System.out.println("Prescription file generated: " + prescriptionFile.getAbsolutePath());
-            
         } catch (IOException ex) {
             System.err.println("Failed to generate prescription file: " + ex.getMessage());
         }
     }
 
-    // ============================================================
-    // UPDATE IN-MEMORY ENTRY (no CSV rewrite)
-    // ============================================================
     public void update(Prescription p) {
         for (int i = 0; i < prescriptions.size(); i++) {
             if (prescriptions.get(i).getId().equals(p.getId())) {
@@ -205,27 +171,17 @@ public class PrescriptionRepository {
         deleteAllByPatientId(patientId);
     }
     
-    // Delete all prescriptions for a patient
     public void deleteAllByPatientId(String patientId) {
-        if (patientId == null || patientId.isEmpty()) {
-            System.err.println("Cannot delete prescriptions: patient ID is null or empty.");
-            return;
-        }
+        if (patientId == null || patientId.isEmpty()) return;
         
-        int removedCount = 0;
-        for (Prescription p : prescriptions) {
-            if (patientId.equals(p.getPatientId())) {
-                removedCount++;
-            }
-        }
-        
-        prescriptions.removeIf(prescription -> patientId.equals(prescription.getPatientId()));
+        String trimmedId = patientId.trim();
+        prescriptions.removeIf(p -> {
+            String targetId = p.getPatientId() != null ? p.getPatientId().trim() : "";
+            return trimmedId.equalsIgnoreCase(targetId);
+        });
         saveAll();
-        
-        System.out.println("Deleted " + removedCount + " prescription(s) for patient " + patientId);
     }
     
-    // Save all prescriptions back to CSV
     public void saveAll() {
         try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(csvPath))) {
             bw.write("prescription_id,patient_id,clinician_id,appointment_id,prescription_date,");
@@ -251,18 +207,13 @@ public class PrescriptionRepository {
                 bw.write(escapeCsv(p.getCollectionDate()));
                 bw.newLine();
             }
-            
         } catch (IOException ex) {
-            System.err.println("Failed to save prescriptions to CSV file: " + csvPath);
-            System.err.println("Error: " + ex.getMessage());
+            System.err.println("Failed to save prescriptions: " + ex.getMessage());
         }
     }
     
-    // Escape commas and quotes in CSV values
     private String escapeCsv(String value) {
-        if (value == null) {
-            return "";
-        }
+        if (value == null) return "";
         if (value.contains(",") || value.contains("\"")) {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }
