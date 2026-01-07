@@ -245,7 +245,7 @@ public class StaffManagementController {
                 }
                 
                 // clinicians need to be added to both repositories since they extend Staff
-                staffRepository.addStaff(newClinician);
+                //staffRepository.addStaff(newClinician);
                 clinicianRepository.addAndAppend(newClinician);
                 
                 loadStaffTable();

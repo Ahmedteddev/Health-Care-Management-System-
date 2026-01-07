@@ -63,8 +63,20 @@ public class PatientRepository {
     public void refresh() { load(); }
 
     public String generateNewId() {
-        int max = patients.stream().map(p -> p.getPatientId().replaceAll("\\D", ""))
-                          .mapToInt(s -> s.isEmpty() ? 0 : Integer.parseInt(s)).max().orElse(1000);
-        return "P" + (max + 1);
+        int max = 0;
+        // Loop through your list of patients
+        for (Patient p : patients) {
+            try {
+                // substring(1) skips the 'P' and takes the rest of the string
+                int n = Integer.parseInt(p.getPatientId().substring(1));
+                if (n > max) {
+                    max = n;
+                }
+            } catch (Exception ignore) {
+                // This ignores any IDs that aren't formatted correctly (like headers or bad data)
+            }
+        }
+        // Formats back to "P" followed by at least 3 digits (e.g., P010)
+        return String.format("P%03d", max + 1);
     }
 }
