@@ -72,7 +72,6 @@ public class MedicalRecordRepository {
                 newRecord.getPatientId(),
                 newRecord.getAllergies(),
                 newRecord.getBloodType(),
-                newRecord.getHistory()
             };
             
             CsvUtils.appendLine(csvPath, rowData);
@@ -129,7 +128,6 @@ public class MedicalRecordRepository {
                 bw.write(record.getPatientId() + ",");
                 bw.write(escapeCsv(record.getAllergies()) + ",");
                 bw.write(escapeCsv(record.getBloodType()) + ",");
-                bw.write(escapeCsv(record.getHistory()));
                 bw.newLine();
             }
             

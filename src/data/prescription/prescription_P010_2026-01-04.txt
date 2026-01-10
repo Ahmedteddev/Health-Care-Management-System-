@@ -1,9 +1,0 @@
-PRESCRIPTION
-Date: 04/01/2026
-Practitioner: GP Dr. Mark Davies
-Patient ID: P010
-Medication: poop no poop
-Dosage: 2
-Notes: 3
-
-Digitally signed by the practitioner.

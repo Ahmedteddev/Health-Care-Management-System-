@@ -1,22 +1,20 @@
 package model;
 
-// Medical record - stores allergies, blood type, and medical history for a patient
+// Medical record - stores allergies, blood type
 public class MedicalRecord {
     
     private String patientId;
     private String allergies;
     private String bloodType;
-    private String history;
-    
+
     public MedicalRecord() {
-        this("", "", "", "");
+        this("", "", "","");
     }
     
     public MedicalRecord(String patientId, String allergies, String bloodType, String history) {
         this.patientId = patientId;
         this.allergies = allergies != null ? allergies : "";
         this.bloodType = bloodType != null ? bloodType : "";
-        this.history = history != null ? history : "";
     }
     
     public String getPatientId() {
@@ -41,14 +39,6 @@ public class MedicalRecord {
     
     public void setBloodType(String bloodType) {
         this.bloodType = bloodType != null ? bloodType : "";
-    }
-    
-    public String getHistory() {
-        return history;
-    }
-    
-    public void setHistory(String history) {
-        this.history = history != null ? history : "";
     }
 }
 

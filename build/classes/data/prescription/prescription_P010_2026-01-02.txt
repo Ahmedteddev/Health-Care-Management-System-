@@ -1,9 +1,0 @@
-PRESCRIPTION
-Date: 02/01/2026
-Practitioner: Senior Nurse Sister Mary Kelly
-Patient ID: P010
-Medication: Nmae
-Dosage: 22
-Notes: 2
-
-Digitally signed by the practitioner.

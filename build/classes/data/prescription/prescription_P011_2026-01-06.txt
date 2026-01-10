@@ -1,9 +1,0 @@
-PRESCRIPTION
-Date: 06/01/2026
-Practitioner: GP Dr. David Thompson
-Patient ID: P011
-Medication: Test
-Dosage: 2
-Notes: Test
-
-Digitally signed by the practitioner.

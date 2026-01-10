@@ -13,6 +13,4 @@ R011,R005,C003,C004,S001,S002,23/11/2025,Urgent,Chest Pain,Very very Critical,EC
 R012,P001,C001,,S001,,2025-12-25,Urgent,Referral for General Surgery,theres a cucmber in his AH,General Surgery,Pending,,,2025-12-25,2025-12-25
 R013,P011,C001,C005,S001,,2025-12-26,Routine,Referral for Cardiology,pooped his pants in excitment,Cardiology,Pending,,,2025-12-26,2025-12-26
 R014,P001,C001,C005,S001,,2026-01-02,Routine,Referral for Cardiology,poop in heart,Cardiology,Pending,,,2026-01-02,2026-01-02
-R015,P001,C001,C009,,,2026-01-02,Routine,POP,LIL DIDDY,,Pending,,,2026-01-02,2026-01-02
-R016,P011,C009,C010,,,2026-01-06,Routine,pkip,klm,,Pending,,,2026-01-06,2026-01-06
-R017,P1010,C009,C001,,,2026-01-06,Routine,poop,poop,poop,Pending,,,2026-01-06,2026-01-06
+R015,P1010,C007,C001,,,2026-01-09,Routine,ortho pain,pain,bones,Pending,,,2026-01-09,2026-01-09
