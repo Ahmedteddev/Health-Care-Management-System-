@@ -16,7 +16,7 @@ public class MedicalRecordPanel extends JPanel {
     private JLabel patientNameLabel;
     private JLabel dobLabel;
     private JLabel genderLabel;
-    private JLabel bloodTypeLabel;
+    // bloodTypeLabel removed from UI view
     
     // Tables
     private JTable encountersTable;
@@ -28,6 +28,8 @@ public class MedicalRecordPanel extends JPanel {
     
     // Action buttons
     private JButton issuePrescriptionButton;
+    private JButton editPrescriptionButton;   // Added
+    private JButton deletePrescriptionButton; // Added
     private JButton generateReferralButton;
     private JButton btnPatientNote;
     
@@ -37,7 +39,7 @@ public class MedicalRecordPanel extends JPanel {
     };
     
     private static final String[] MEDICATIONS_COLUMNS = {
-        "Medication Name", "Dosage", "Status"
+        "ID", "Medication Name", "Dosage", "Status" // Added ID column for selection
     };
     
     private static final String[] REFERRALS_COLUMNS = {
@@ -60,7 +62,6 @@ public class MedicalRecordPanel extends JPanel {
         patientNameLabel = new JLabel("N/A");
         dobLabel = new JLabel("N/A");
         genderLabel = new JLabel("N/A");
-        bloodTypeLabel = new JLabel("N/A");
         
         // Encounters table
         encountersTableModel = new DefaultTableModel(ENCOUNTERS_COLUMNS, 0) {
@@ -82,6 +83,13 @@ public class MedicalRecordPanel extends JPanel {
         medicationsTable = new JTable(medicationsTableModel);
         medicationsTable.setRowHeight(25);
         
+        // Selection listener for Medications Table to enable Edit/Delete
+        medicationsTable.getSelectionModel().addListSelectionListener(e -> {
+            boolean hasSelection = medicationsTable.getSelectedRow() != -1;
+            editPrescriptionButton.setEnabled(hasSelection);
+            deletePrescriptionButton.setEnabled(hasSelection);
+        });
+        
         // Referrals table
         referralsTableModel = new DefaultTableModel(REFERRALS_COLUMNS, 0) {
             @Override
@@ -95,6 +103,13 @@ public class MedicalRecordPanel extends JPanel {
         // Action buttons
         issuePrescriptionButton = new JButton("Issue New Prescription");
         issuePrescriptionButton.setEnabled(false);
+        
+        editPrescriptionButton = new JButton("Edit Selected"); // Added
+        editPrescriptionButton.setEnabled(false);
+        
+        deletePrescriptionButton = new JButton("Delete Selected"); // Added
+        deletePrescriptionButton.setEnabled(false);
+        
         generateReferralButton = new JButton("Generate New Referral");
         generateReferralButton.setEnabled(false);
         btnPatientNote = new JButton("View/Edit Patient Clinical Note");
@@ -135,7 +150,7 @@ public class MedicalRecordPanel extends JPanel {
         JPanel mainContent = new JPanel();
         mainContent.setLayout(new BoxLayout(mainContent, BoxLayout.Y_AXIS));
         
-        // Summary panel
+        // Summary panel (Blood Type Removed from layout)
         JPanel summaryPanel = new JPanel(new GridBagLayout());
         summaryPanel.setBorder(BorderFactory.createTitledBorder("Patient Summary"));
         GridBagConstraints gbc = new GridBagConstraints();
@@ -153,11 +168,8 @@ public class MedicalRecordPanel extends JPanel {
         summaryPanel.add(new JLabel("Gender:"), gbc);
         gbc.gridx = 1;
         summaryPanel.add(genderLabel, gbc);
+        
         gbc.gridx = 0; gbc.gridy = 3;
-        summaryPanel.add(new JLabel("Blood Type:"), gbc);
-        gbc.gridx = 1;
-        summaryPanel.add(bloodTypeLabel, gbc);
-        gbc.gridx = 0; gbc.gridy = 4;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         summaryPanel.add(btnPatientNote, gbc);
@@ -196,6 +208,8 @@ public class MedicalRecordPanel extends JPanel {
         prescriptionsBlock.add(medicationsScrollPane, BorderLayout.CENTER);
         JPanel prescriptionButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
         prescriptionButtonPanel.add(issuePrescriptionButton);
+        prescriptionButtonPanel.add(editPrescriptionButton);   // Added
+        prescriptionButtonPanel.add(deletePrescriptionButton); // Added
         prescriptionsBlock.add(prescriptionButtonPanel, BorderLayout.SOUTH);
         mainContent.add(prescriptionsBlock);
         
@@ -220,17 +234,16 @@ public class MedicalRecordPanel extends JPanel {
         return nhsNumberField.getText().trim();
     }
     
-    // Methods to update summary
-    public void updateSummary(String name, String dob, String gender, String bloodType) {
+    // Methods to update summary (Removed bloodType parameter)
+    public void updateSummary(String name, String dob, String gender) {
         patientNameLabel.setText(name != null ? name : "N/A");
         dobLabel.setText(dob != null ? dob : "N/A");
         genderLabel.setText(gender != null ? gender : "N/A");
-        bloodTypeLabel.setText(bloodType != null ? bloodType : "N/A");
     }
     
     // Methods to clear summary
     public void clearSummary() {
-        updateSummary(null, null, null, null);
+        updateSummary(null, null, null);
     }
     
     // Methods for encounters table
@@ -247,8 +260,13 @@ public class MedicalRecordPanel extends JPanel {
         medicationsTableModel.setRowCount(0);
     }
     
-    public void addMedicationRow(String medication, String dosage, String status) {
-        medicationsTableModel.addRow(new Object[]{medication, dosage, status});
+    public void addMedicationRow(String id, String medication, String dosage, String status) {
+        medicationsTableModel.addRow(new Object[]{id, medication, dosage, status});
+    }
+
+    public String getSelectedPrescriptionId() {
+        int row = medicationsTable.getSelectedRow();
+        return (row != -1) ? (String) medicationsTable.getValueAt(row, 0) : null;
     }
     
     // Button getters
@@ -258,6 +276,14 @@ public class MedicalRecordPanel extends JPanel {
     
     public JButton getIssuePrescriptionButton() {
         return issuePrescriptionButton;
+    }
+
+    public JButton getEditPrescriptionButton() {
+        return editPrescriptionButton;
+    }
+
+    public JButton getDeletePrescriptionButton() {
+        return deletePrescriptionButton;
     }
     
     // Enable/disable issue prescription button

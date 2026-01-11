@@ -1,0 +1,18 @@
+REFERRAL LETTER
+Date: 11/01/2026
+TO: lungs doctor Department
+FACILITY: 
+RE: James Wilson
+DOB: 1992-01-19
+NHS Number: 7890123456
+
+Dear Consultant,
+
+I am referring this patient for further investigation regarding:
+
+123456789
+
+Urgency: Routine
+
+Sincerely,
+Consultant Dr. Andrew White

@@ -23,13 +23,12 @@ public class PrescriptionRepository {
 
     private void load() {
         try {
-            for (String[] row : CsvUtils.readCsv(csvPath)) {
-                // FIX: Skip empty rows or null rows
+            List<String[]> rows = CsvUtils.readCsv(csvPath);
+            for (String[] row : rows) {
                 if (row == null || row.length == 0 || (row.length == 1 && row[0].trim().isEmpty())) {
                     continue;
                 }
 
-                // Skip header row
                 if (row[0].equalsIgnoreCase("prescription_id"))
                     continue;
 
@@ -46,7 +45,6 @@ public class PrescriptionRepository {
 
                 prescriptions.add(p);
             }
-
         } catch (IOException ex) {
             System.err.println("Failed to load prescriptions: " + ex.getMessage());
         }
@@ -55,23 +53,86 @@ public class PrescriptionRepository {
     public List<Prescription> getAll() {
         return prescriptions;
     }
-    
-    // Get all prescriptions for a patient
+
+    // --- NEW METHODS FOR EDIT/DELETE/DASHBOARD ---
+
+    public Prescription findById(String id) {
+        if (id == null) return null;
+        for (Prescription p : prescriptions) {
+            if (id.equals(p.getId())) return p;
+        }
+        return null;
+    }
+
+    /**
+     * Filters prescriptions for a specific patient.
+     * Required by PatientDashboardController.
+     */
     public List<Prescription> getByPatientId(String patientId) {
         List<Prescription> result = new ArrayList<>();
-        if (patientId == null || patientId.isEmpty()) {
-            return result;
-        }
-        // FIX: Added .trim() and equalsIgnoreCase for robust filtering
-        String trimmedId = patientId.trim();
-        for (Prescription prescription : prescriptions) {
-            String targetId = prescription.getPatientId() != null ? prescription.getPatientId().trim() : "";
-            if (trimmedId.equalsIgnoreCase(targetId)) {
-                result.add(prescription);
+        if (patientId == null) return result;
+        for (Prescription p : prescriptions) {
+            if (patientId.equals(p.getPatientId())) {
+                result.add(p);
             }
         }
         return result;
     }
+
+    public void update(Prescription updatedPrescription) {
+        for (int i = 0; i < prescriptions.size(); i++) {
+            if (prescriptions.get(i).getId().equals(updatedPrescription.getId())) {
+                prescriptions.set(i, updatedPrescription);
+                saveAll(); 
+                return;
+            }
+        }
+    }
+
+    public void removeById(String id) {
+        prescriptions.removeIf(p -> p.getId().equals(id));
+        saveAll();
+    }
+
+    public void saveAll() {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(csvPath))) {
+            bw.write("prescription_id,patient_id,clinician_id,appointment_id,prescription_date," +
+                     "medication_name,dosage,frequency,duration_days,quantity,instructions," +
+                     "pharmacy_name,status,issue_date,collection_date");
+            bw.newLine();
+            
+            for (Prescription p : prescriptions) {
+                bw.write(escapeCsv(p.getId()) + ",");
+                bw.write(escapeCsv(p.getPatientId()) + ",");
+                bw.write(escapeCsv(p.getClinicianId()) + ",");
+                bw.write(escapeCsv(p.getAppointmentId()) + ",");
+                bw.write(escapeCsv(p.getPrescriptionDate()) + ",");
+                bw.write(escapeCsv(p.getMedication()) + ",");
+                bw.write(escapeCsv(p.getDosage()) + ",");
+                bw.write(escapeCsv(p.getFrequency()) + ",");
+                bw.write(escapeCsv(p.getDurationDays()) + ",");
+                bw.write(escapeCsv(p.getQuantity()) + ",");
+                bw.write(escapeCsv(p.getInstructions()) + ",");
+                bw.write(escapeCsv(p.getPharmacyName()) + ",");
+                bw.write(escapeCsv(p.getStatus()) + ",");
+                bw.write(escapeCsv(p.getIssueDate()) + ",");
+                bw.write(escapeCsv(p.getCollectionDate()));
+                bw.newLine();
+            }
+        } catch (IOException ex) {
+            System.err.println("Failed to save prescriptions: " + ex.getMessage());
+        }
+    }
+
+    private String escapeCsv(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
+
+    // --- ORIGINAL FEATURE METHODS ---
 
     public String generateNewId() {
         int max = 0;
@@ -85,24 +146,6 @@ public class PrescriptionRepository {
             } catch (Exception ignore) {}
         }
         return String.format("RX%03d", max + 1);
-    }
-
-    public List<String> getMedicationOptions() {
-        Set<String> meds = new TreeSet<>();
-        for (Prescription p : prescriptions) {
-            if (p.getMedication() != null && !p.getMedication().isBlank())
-                meds.add(p.getMedication());
-        }
-        return new ArrayList<>(meds);
-    }
-
-    public List<String> getPharmacyOptions() {
-        Set<String> pharms = new TreeSet<>();
-        for (Prescription p : prescriptions) {
-            if (p.getPharmacyName() != null && !p.getPharmacyName().isBlank())
-                pharms.add(p.getPharmacyName());
-        }
-        return new ArrayList<>(pharms);
     }
 
     public void addAndAppend(Prescription p) {
@@ -119,7 +162,7 @@ public class PrescriptionRepository {
             System.err.println("Failed to append prescription: " + ex.getMessage());
         }
     }
-    
+
     public void generatePrescriptionFile(Prescription p, String practitionerName, String practitionerId) {
         File prescriptionDir = new File("src/data/prescription");
         if (!prescriptionDir.exists()) {
@@ -148,75 +191,8 @@ public class PrescriptionRepository {
             writer.newLine();
             writer.write("Digitally signed by the practitioner.");
             writer.newLine();
-            System.out.println("Prescription file generated: " + prescriptionFile.getAbsolutePath());
         } catch (IOException ex) {
             System.err.println("Failed to generate prescription file: " + ex.getMessage());
         }
-    }
-
-    public void update(Prescription p) {
-        for (int i = 0; i < prescriptions.size(); i++) {
-            if (prescriptions.get(i).getId().equals(p.getId())) {
-                prescriptions.set(i, p);
-                return;
-            }
-        }
-    }
-
-    public void removeById(String id) {
-        prescriptions.removeIf(p -> p.getId().equals(id));
-    }
-    
-    public void deleteByPatientId(String patientId) {
-        deleteAllByPatientId(patientId);
-    }
-    
-    public void deleteAllByPatientId(String patientId) {
-        if (patientId == null || patientId.isEmpty()) return;
-        
-        String trimmedId = patientId.trim();
-        prescriptions.removeIf(p -> {
-            String targetId = p.getPatientId() != null ? p.getPatientId().trim() : "";
-            return trimmedId.equalsIgnoreCase(targetId);
-        });
-        saveAll();
-    }
-    
-    public void saveAll() {
-        try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(csvPath))) {
-            bw.write("prescription_id,patient_id,clinician_id,appointment_id,prescription_date,");
-            bw.write("medication_name,dosage,frequency,duration_days,quantity,instructions,");
-            bw.write("pharmacy_name,status,issue_date,collection_date");
-            bw.newLine();
-            
-            for (Prescription p : prescriptions) {
-                bw.write(escapeCsv(p.getId()) + ",");
-                bw.write(escapeCsv(p.getPatientId()) + ",");
-                bw.write(escapeCsv(p.getClinicianId()) + ",");
-                bw.write(escapeCsv(p.getAppointmentId()) + ",");
-                bw.write(escapeCsv(p.getPrescriptionDate()) + ",");
-                bw.write(escapeCsv(p.getMedication()) + ",");
-                bw.write(escapeCsv(p.getDosage()) + ",");
-                bw.write(escapeCsv(p.getFrequency()) + ",");
-                bw.write(escapeCsv(p.getDurationDays()) + ",");
-                bw.write(escapeCsv(p.getQuantity()) + ",");
-                bw.write(escapeCsv(p.getInstructions()) + ",");
-                bw.write(escapeCsv(p.getPharmacyName()) + ",");
-                bw.write(escapeCsv(p.getStatus()) + ",");
-                bw.write(escapeCsv(p.getIssueDate()) + ",");
-                bw.write(escapeCsv(p.getCollectionDate()));
-                bw.newLine();
-            }
-        } catch (IOException ex) {
-            System.err.println("Failed to save prescriptions: " + ex.getMessage());
-        }
-    }
-    
-    private String escapeCsv(String value) {
-        if (value == null) return "";
-        if (value.contains(",") || value.contains("\"")) {
-            return "\"" + value.replace("\"", "\"\"") + "\"";
-        }
-        return value;
     }
 }

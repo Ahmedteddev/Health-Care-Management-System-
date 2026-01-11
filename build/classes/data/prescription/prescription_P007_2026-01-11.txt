@@ -1,0 +1,9 @@
+PRESCRIPTION
+Date: 11/01/2026
+Practitioner: Consultant Dr. Andrew White
+Patient ID: P007
+Medication: Tylanol
+Dosage: 25mg
+Notes: 123456789
+
+Digitally signed by the practitioner.

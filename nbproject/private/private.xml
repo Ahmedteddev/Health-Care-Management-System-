@@ -5,16 +5,17 @@
         <group>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/Main/Main.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/data/appointments.csv</file>
-            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/data/referrals.csv</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/Prescription.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/Staff.java</file>
+            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/AppointmentRepository.java</file>
+            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/controller/MedicalRecordController.java</file>
+            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/data/prescriptions.csv</file>
+            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/controller/PatientDashboardController.java</file>
+            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/data/referrals.csv</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/PrescriptionRepository.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/Appointment.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/controller/PatientManagementController.java</file>
             <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/Facility.java</file>
-            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/model/AppointmentRepository.java</file>
-            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/controller/MedicalRecordController.java</file>
-            <file>file:/C:/Users/ahmed/Desktop/hms/hms/src/data/prescriptions.csv</file>
         </group>
     </open-files>
 </project-private>

@@ -42,6 +42,11 @@ public class MedicalRecordController {
     public void bind() {
         view.getSearchButton().addActionListener(new SearchButtonListener());
         view.getIssuePrescriptionButton().addActionListener(new IssuePrescriptionButtonListener());
+        
+        // Added Listeners for Edit and Delete
+        view.getEditPrescriptionButton().addActionListener(e -> handleEditPrescription());
+        view.getDeletePrescriptionButton().addActionListener(e -> handleDeletePrescription());
+        
         view.getGenerateReferralButton().addActionListener(new GenerateReferralButtonListener());
         view.getBtnPatientNote().addActionListener(e -> handleViewEditClinicalNote());
     }
@@ -87,11 +92,11 @@ public class MedicalRecordController {
         currentPatient = foundPatient;
         view.setCurrentPatientId(foundPatient.getPatientId());
         
+        //Removed Blood Type argument
         view.updateSummary(
             foundPatient.getFullName(),
             foundPatient.getDateOfBirth(),
-            foundPatient.getGender(),
-            "N/A"
+            foundPatient.getGender()
         );
         
         loadEncounters(foundPatient.getPatientId());
@@ -128,7 +133,9 @@ public class MedicalRecordController {
         
         for (Prescription prescription : prescriptionRepository.getAll()) {
             if (patientId.equals(prescription.getPatientId())) {
+                // FIXED: Added ID as first argument
                 view.addMedicationRow(
+                    prescription.getId(),
                     prescription.getMedication(),
                     prescription.getDosage(),
                     prescription.getStatus()
@@ -150,13 +157,12 @@ public class MedicalRecordController {
         );
         
         dialog.getConfirmButton().addActionListener(e -> {
-            // Pull all fields from dialog including the manual clinicianId
             String medication = dialog.getMedication();
             String dosage = dialog.getDosage();
             String frequency = dialog.getFrequency();
             String duration = dialog.getDuration();
             String instructions = dialog.getInstructions();
-            String clinicianId = dialog.getClinicianId(); // Manually entered ID from text field
+            String clinicianId = dialog.getClinicianId(); 
             
             if (medication.isEmpty() || dosage.isEmpty() || frequency.isEmpty() || duration.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "Please fill in all required fields.", "Validation Error", JOptionPane.ERROR_MESSAGE);
@@ -171,11 +177,10 @@ public class MedicalRecordController {
             String prescriptionId = prescriptionRepository.generateNewId();
             String today = java.time.LocalDate.now().toString();
             
-            // Create Prescription using the manually entered clinicianId from the dialog
             Prescription newPrescription = new Prescription(
                 prescriptionId,
                 currentPatient.getPatientId(),
-                clinicianId, // Using ID from user input in text field
+                clinicianId,
                 "",
                 today,
                 medication,
@@ -190,11 +195,8 @@ public class MedicalRecordController {
                 ""
             );
             
-            // Pass all fields to addAndAppend
             prescriptionRepository.addAndAppend(newPrescription);
             
-            // Call generatePrescriptionFile using the manually entered ID
-            // Look up clinician name for display purposes, but use the manually entered ID
             Clinician clinician = clinicianRepository.findById(clinicianId);
             String clinicianName = clinician != null ? clinician.getFullName() : clinicianId;
             prescriptionRepository.generatePrescriptionFile(newPrescription, clinicianName, clinicianId);
@@ -206,8 +208,55 @@ public class MedicalRecordController {
         });
         
         dialog.getCancelButton().addActionListener(e -> dialog.dispose());
-        
         dialog.setVisible(true);
+    }
+
+    private void handleEditPrescription() {
+        String prescriptionId = view.getSelectedPrescriptionId();
+        if (prescriptionId == null) return;
+
+        Prescription existing = prescriptionRepository.findById(prescriptionId);
+        if (existing == null) return;
+
+        JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view);
+        NewPrescriptionDialog dialog = new NewPrescriptionDialog(parentFrame, currentPatient);
+        
+        // Fill dialog with existing data
+        dialog.setMedication(existing.getMedication());
+        dialog.setDosage(existing.getDosage());
+        dialog.setFrequency(existing.getFrequency());
+        dialog.setDuration(existing.getDurationDays());
+        dialog.setInstructions(existing.getInstructions());
+        dialog.setClinicianId(existing.getClinicianId());
+
+        dialog.getConfirmButton().addActionListener(e -> {
+            existing.setMedication(dialog.getMedication());
+            existing.setDosage(dialog.getDosage());
+            existing.setFrequency(dialog.getFrequency());
+            existing.setDurationDays(dialog.getDuration());
+            existing.setInstructions(dialog.getInstructions());
+            
+            prescriptionRepository.update(existing);
+            loadMedications(currentPatient.getPatientId());
+            dialog.dispose();
+        });
+
+        dialog.getCancelButton().addActionListener(e -> dialog.dispose());
+        dialog.setVisible(true);
+    }
+
+    private void handleDeletePrescription() {
+        String prescriptionId = view.getSelectedPrescriptionId();
+        if (prescriptionId == null) return;
+
+        int confirm = JOptionPane.showConfirmDialog(view, 
+            "Are you sure you want to delete prescription " + prescriptionId + "?", 
+            "Confirm Delete", JOptionPane.YES_NO_OPTION);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            prescriptionRepository.removeById(prescriptionId);
+            loadMedications(currentPatient.getPatientId());
+        }
     }
     
     private class SearchButtonListener implements ActionListener {
@@ -252,13 +301,12 @@ public class MedicalRecordController {
         );
         
         dialog.getConfirmButton().addActionListener(e -> {
-            // Pull all fields from dialog including referring_clinician_id and referred_to_clinician_id
             String urgency = dialog.getUrgency();
             String referralReason = dialog.getReferralReason();
             String clinicalSummary = dialog.getClinicalSummary();
             String requestedInvestigations = dialog.getRequestedInvestigations();
-            String referringClinicianId = dialog.getReferringClinicianId(); // Manually entered ID from text field
-            String referredToClinicianId = dialog.getReferredToClinicianId(); // Manually entered ID from text field
+            String referringClinicianId = dialog.getReferringClinicianId();
+            String referredToClinicianId = dialog.getReferredToClinicianId();
             
             if (clinicalSummary.isEmpty() || referralReason.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "Please fill in all required fields.", "Validation Error", JOptionPane.ERROR_MESSAGE);
@@ -273,12 +321,11 @@ public class MedicalRecordController {
             String referralId = referralRepo.generateNewId();
             String today = LocalDate.now().toString();
             
-            // Create Referral using the manually entered clinician IDs from the dialog
             Referral newReferral = new Referral(
                 referralId,
                 currentPatient.getPatientId(),
-                referringClinicianId, // Using ID from user input in text field
-                referredToClinicianId, // Using ID from user input in text field
+                referringClinicianId,
+                referredToClinicianId,
                 "",
                 "",
                 today,
@@ -293,10 +340,8 @@ public class MedicalRecordController {
                 today
             );
             
-            // Pass all fields including clinician IDs to addAndAppend
             referralRepo.addAndAppend(newReferral);
             
-            // Get referring clinician name for letter (for display purposes only)
             Clinician referringClinician = clinicianRepository.findById(referringClinicianId);
             String referringClinicianName = referringClinician != null ? referringClinician.getFullName() : referringClinicianId;
             generateReferralLetter(newReferral, referringClinicianName);
@@ -307,11 +352,9 @@ public class MedicalRecordController {
         });
         
         dialog.getCancelButton().addActionListener(e -> dialog.dispose());
-        
         dialog.setVisible(true);
     }
     
-    // generates a text file for the referral letter - saves it to the referrals folder
     private void generateReferralLetter(Referral referral, String practitionerName) {
         Patient patient = patientRepository.findById(referral.getPatientId());
         Facility referredToFacility = facilityRepository.findById(referral.getReferredToFacilityId());
@@ -378,9 +421,7 @@ public class MedicalRecordController {
         }
     }
     
-    // We are looking for the latest appointment so the doctor can add a note to it
     private void handleViewEditClinicalNote() {
-        // Get the current patient ID that was searched and displayed
         String currentPatientId = view.getCurrentPatientId();
         
         if (currentPatientId == null || currentPatientId.isEmpty()) {
@@ -391,10 +432,8 @@ public class MedicalRecordController {
             return;
         }
         
-        // Go to the AppointmentRepository and find the latest appointment for this patient ID
         java.util.List<Appointment> patientAppointments = appointmentRepository.getByPatientId(currentPatientId);
         
-        // Student Logic: If no appointment exists yet, show a message
         if (patientAppointments == null || patientAppointments.isEmpty()) {
             JOptionPane.showMessageDialog(view, 
                 "No appointments found for this patient yet.", 
@@ -403,14 +442,12 @@ public class MedicalRecordController {
             return;
         }
         
-        // Find the latest appointment by comparing dates
         Appointment latestRecord = null;
         String latestDate = "";
         
         for (Appointment appointment : patientAppointments) {
             String appointmentDate = appointment.getAppointmentDate();
             if (appointmentDate != null && !appointmentDate.isEmpty()) {
-                // Compare dates (assuming format is YYYY-MM-DD or similar sortable format)
                 if (latestDate.isEmpty() || appointmentDate.compareTo(latestDate) > 0) {
                     latestDate = appointmentDate;
                     latestRecord = appointment;
@@ -418,7 +455,6 @@ public class MedicalRecordController {
             }
         }
         
-        // If we couldn't find a valid appointment with a date, use the first one
         if (latestRecord == null && !patientAppointments.isEmpty()) {
             latestRecord = patientAppointments.get(0);
         }
@@ -431,24 +467,20 @@ public class MedicalRecordController {
             return;
         }
         
-        // Get the current notes from the appointment
         String patientNote = latestRecord.getNotes();
         if (patientNote == null) {
             patientNote = "";
         }
         
-        // Using a JTextArea so the doctor has plenty of room to type their notes
         JTextArea noteArea = new JTextArea(10, 40);
         noteArea.setText(patientNote);
         noteArea.setLineWrap(true);
         noteArea.setWrapStyleWord(true);
-        noteArea.setCaretPosition(0); // Scroll to top
+        noteArea.setCaretPosition(0); 
         
-        // Create a scroll pane for the text area
         JScrollPane scrollPane = new JScrollPane(noteArea);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         
-        // Show the pop-up box with the text area
         int result = JOptionPane.showConfirmDialog(
             view,
             scrollPane,
@@ -457,28 +489,21 @@ public class MedicalRecordController {
             JOptionPane.PLAIN_MESSAGE
         );
         
-        // When the user hits OK, update that appointment object's notes field
         if (result == JOptionPane.OK_OPTION) {
             String updatedNote = noteArea.getText();
             latestRecord.setNotes(updatedNote);
             
-            // Update the last modified date
             String today = java.time.LocalDate.now().toString();
             latestRecord.setLastModified(today);
             
-            // Call appointmentRepository.saveAll() so the CSV file is updated immediately
-            // This saves the note back to the CSV so it stays there even if we close the app
             appointmentRepository.updateAppointment(latestRecord);
             
-            // Show a simple confirmation
             JOptionPane.showMessageDialog(null, 
                 "Clinical note saved to the patient's record!", 
                 "Note Saved", 
                 JOptionPane.INFORMATION_MESSAGE);
             
-            // Refresh the encounters table to show the updated note
             loadEncounters(currentPatientId);
         }
     }
 }
-
